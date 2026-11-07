@@ -1,0 +1,20 @@
+[package]
+name = "swarmpad-factory"
+description = "Swarmpad factory: registers projects and deploys their tokens"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = { workspace = true }
+# near-sdk 5.30.0 expects the pre-0.4.1 near-sys API (universal state init).
+near-sys = "=0.4.0"
+swarmpad-common = { workspace = true }
+
+[dev-dependencies]
+near-sdk = { workspace = true, features = ["unit-testing"] }
