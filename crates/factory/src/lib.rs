@@ -9,12 +9,19 @@ use near_sdk::collections::{LookupMap, UnorderedMap};
 use near_sdk::json_types::{Base64VecU8, U128};
 use near_sdk::serde_json::json;
 use near_sdk::{
-    env, near, require, AccountId, BorshStorageKey, Gas, NearToken, PanicOnDefault, Promise,
+    env, log, near, require, AccountId, BorshStorageKey, Gas, NearToken, PanicOnDefault, Promise,
 };
 use swarmpad_common::{Project, BPS_DENOMINATOR, MIN_THRESHOLD_BPS};
 
 /// Gas for the token `new` call. Deployment itself does not use this budget.
 const TOKEN_INIT_GAS: Gas = Gas::from_tgas(60);
+
+/// Gas reserved for the `on_launch` callback that records the project.
+const LAUNCH_CALLBACK_GAS: Gas = Gas::from_tgas(25);
+
+/// Account ids are capped at 64 characters, so a slug plus the dot and the
+/// factory id has to fit.
+const MAX_ACCOUNT_ID_LEN: usize = 64;
 
 /// Head room on top of the code storage cost: account creation, the initial
 /// state and the first claim records.
@@ -83,15 +90,21 @@ impl Factory {
         self.token_code = code.0;
     }
 
-    /// Registers a project and deploys its token on `<slug>.<factory>`.
+    /// Deploys the token on `<slug>.<factory>`. The project is recorded by the
+    /// `on_launch` callback only after the deployment succeeds, so a failed
+    /// deploy cannot leave a dead entry in the registry.
     #[payable]
-    pub fn launch(&mut self, args: LaunchArgs) -> AccountId {
+    pub fn launch(&mut self, args: LaunchArgs) -> Promise {
         require!(!self.token_code.is_empty(), "Token code is not set");
         require!(
             env::attached_deposit() >= self.launch_deposit(),
             "Attach the launch deposit"
         );
         require!(is_valid_slug(&args.slug), "Invalid slug");
+        require!(
+            args.slug.len() + 1 + env::current_account_id().as_str().len() <= MAX_ACCOUNT_ID_LEN,
+            "Slug too long for this factory id"
+        );
         require!(
             (MIN_THRESHOLD_BPS..=BPS_DENOMINATOR).contains(&args.threshold_bps),
             "Threshold must be between 50% and 100%"
@@ -114,13 +127,13 @@ impl Factory {
             deadline_ns,
             config_hash: args.config_hash.clone(),
         };
-        self.projects.insert(&args.slug, &project);
-        self.tokens.insert(&args.slug, &token_account);
-
         let init_args = json!({
             "creator_id": args.creator_id,
             "payout_account": args.payout_account,
             "protocol_account": self.protocol_account,
+            // Phase 2 points this at the liquidity pool account; until then the
+            // pool share goes to the protocol account instead of being stranded.
+            "pool_account": self.protocol_account,
             "name": args.name,
             "symbol": args.symbol,
             "decimals": args.decimals,
@@ -133,7 +146,7 @@ impl Factory {
         .to_string();
 
         let deposit = env::attached_deposit();
-        Promise::new(token_account.clone())
+        let deploy = Promise::new(token_account)
             .create_account()
             .transfer(deposit)
             .deploy_contract(self.token_code.clone())
@@ -142,14 +155,35 @@ impl Factory {
                 init_args.into_bytes(),
                 NearToken::from_yoctonear(0),
                 TOKEN_INIT_GAS,
-            )
-            .detach();
+            );
 
-        // TODO(phase 2): delete the factory's access key on the new account
-        // after init, so no party can redeploy or upgrade a project. The key
-        // handling has to be verified against testnet before this is claimed
-        // in the docs.
-        token_account
+        // The deployed account is created without an access key, which is what
+        // makes a project immutable. The callback records the project only on
+        // success, so the registry never points at a token that does not exist.
+        deploy.then(
+            Self::ext(env::current_account_id())
+                .with_static_gas(LAUNCH_CALLBACK_GAS)
+                .on_launch(project),
+        )
+    }
+
+    /// Records a launch after the deploy receipt settles. Private, so only this
+    /// contract can call it.
+    #[private]
+    pub fn on_launch(&mut self, project: Project) {
+        match env::promise_result_checked(0, 0) {
+            Ok(_) => {
+                self.projects.insert(&project.slug, &project);
+                self.tokens.insert(&project.slug, &project.token_account);
+                log!("launch recorded: {}", project.token_account);
+            }
+            Err(_) => {
+                env::log_str(&format!(
+                    "launch failed for slug {}, nothing recorded",
+                    project.slug
+                ));
+            }
+        }
     }
 
     /// Deposit a caller has to attach so the new token account can pay for its
@@ -294,6 +328,74 @@ mod tests {
             duration_ns: 2_592_000_000_000_000,
             config_hash: "sha256:00".to_string(),
         }
+    }
+
+    #[test]
+    #[should_panic(expected = "Slug too long")]
+    fn launch_rejects_slug_that_breaks_the_account_id_limit() {
+        let mut factory = build();
+        factory.set_token_code(Base64VecU8(vec![0u8; 100]));
+        let long_factory: AccountId = format!("{}.testnet", "f".repeat(40)).parse().unwrap();
+        testing_env!(VMContextBuilder::new()
+            .current_account_id(long_factory)
+            .predecessor_account_id(accounts(1))
+            .attached_deposit(NearToken::from_millinear(500))
+            .build());
+        let mut args = sample_args();
+        args.slug = "a".repeat(32);
+        let _ = factory.launch(args);
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn on_launch_records_the_project_after_success() {
+        let mut factory = build();
+        let project = Project {
+            slug: "swarm".to_string(),
+            token_account: "swarm.factory.testnet".parse().unwrap(),
+            creator_id: accounts(4),
+            payout_account: accounts(4),
+            supply: U128(1_000_000),
+            threshold_bps: 5_000,
+            deadline_ns: 1,
+            config_hash: "sha256:00".to_string(),
+        };
+        near_sdk::test_utils::testing_env_with_promise_results(
+            VMContextBuilder::new()
+                .predecessor_account_id("factory.testnet".parse().unwrap())
+                .build(),
+            near_sdk::PromiseResult::Successful(vec![]),
+        );
+        factory.on_launch(project);
+        assert_eq!(factory.project_count(), 1);
+        assert_eq!(
+            factory.token_account("swarm".to_string()),
+            Some("swarm.factory.testnet".parse().unwrap())
+        );
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn on_launch_skips_the_registry_when_the_deploy_failed() {
+        let mut factory = build();
+        let project = Project {
+            slug: "swarm".to_string(),
+            token_account: "swarm.factory.testnet".parse().unwrap(),
+            creator_id: accounts(4),
+            payout_account: accounts(4),
+            supply: U128(1_000_000),
+            threshold_bps: 5_000,
+            deadline_ns: 1,
+            config_hash: "sha256:00".to_string(),
+        };
+        near_sdk::test_utils::testing_env_with_promise_results(
+            VMContextBuilder::new()
+                .predecessor_account_id("factory.testnet".parse().unwrap())
+                .build(),
+            near_sdk::PromiseResult::Failed,
+        );
+        factory.on_launch(project);
+        assert_eq!(factory.project_count(), 0);
     }
 
     #[test]

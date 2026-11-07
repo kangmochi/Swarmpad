@@ -40,8 +40,12 @@ not an idea; anything still open is listed at the end.
 
 - Every claim costs 0.05 NEAR.
 - Split: 50% pool (liquidity), 30% creator, 20% protocol.
-- The split is accrued in the token contract. No withdrawal path exists yet;
-  moving the pool share is phase 2 (see section 6).
+- The split is accrued in the token contract and paid by `withdraw_fees`, which
+  anyone can call. Every share goes to a fixed account (`pool_account`, creator
+  payout, protocol) and state is cleared before the transfers are scheduled, so
+  a caller can trigger a payout but never redirect it. Until the liquidity pool
+  exists `pool_account` is the protocol account, so the pool share cannot be
+  stranded.
 - No claims means no fee for anyone, so the creator only earns if the token is
   actually mined.
 
@@ -63,7 +67,13 @@ not an idea; anything still open is listed at the end.
 - Factory launch arguments: slug, creator, payout account, name, symbol,
   decimals, supply, reward per proof, epoch cap, threshold, duration, hash.
 - Slug rules: lowercase `a-z0-9-`, 1..=32 characters, no leading or trailing
-  hyphen.
+  hyphen, and slug plus factory id must fit the 64 character account id limit.
+- The factory records a project only in the `on_launch` callback, after the
+  deploy receipt succeeded. A failed deploy leaves no registry entry, which is
+  what went wrong on the first live attempt.
+- The launch deposit is derived from the token code size
+  (`storage_byte_cost * code_len + 0.3 NEAR`) and forwarded to the new account,
+  because the account pays for its own code storage.
 
 ## 6. Liquidity (phase 2)
 

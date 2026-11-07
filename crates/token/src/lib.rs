@@ -19,7 +19,8 @@ use near_contract_standards::storage_management::{
 use near_sdk::collections::LookupMap;
 use near_sdk::json_types::{Base64VecU8, U128};
 use near_sdk::{
-    env, log, near, require, AccountId, BorshStorageKey, PanicOnDefault, PromiseOrValue,
+    env, log, near, require, AccountId, BorshStorageKey, NearToken, PanicOnDefault, Promise,
+    PromiseOrValue,
 };
 use swarmpad_common::{
     digest_below_target, level_for, target_for, ProjectStatus, BPS_DENOMINATOR, CLAIM_FEE_YOCTO,
@@ -43,6 +44,9 @@ pub struct Token {
     payout_account: AccountId,
     /// Module address that receives the protocol share of the claim fee.
     protocol_account: AccountId,
+    /// Address that receives the pool share. Until the liquidity pool exists
+    /// this is the protocol account, so the share cannot be stranded.
+    pool_account: AccountId,
     /// Hard cap of the token, fixed at launch.
     supply: u128,
     /// Tokens handed out by mining. Always equals `ft.total_supply`.
@@ -74,6 +78,7 @@ impl Token {
         creator_id: AccountId,
         payout_account: AccountId,
         protocol_account: AccountId,
+        pool_account: AccountId,
         name: String,
         symbol: String,
         decimals: u8,
@@ -111,6 +116,7 @@ impl Token {
             creator_id,
             payout_account,
             protocol_account,
+            pool_account,
             supply: supply.0,
             mined: 0,
             burned: 0,
@@ -155,6 +161,38 @@ impl Token {
         };
         self.burned = self.supply.saturating_sub(self.mined);
         self.status.clone()
+    }
+
+    /// Pays out the claim fee shares. Permissionless on purpose: every payout
+    /// goes to a fixed recipient, so a caller can only trigger it, never
+    /// redirect it. State is cleared before the transfers are scheduled.
+    pub fn withdraw_fees(&mut self) -> (U128, U128, U128) {
+        let pool = self.pool_accrued;
+        let creator = self.creator_accrued;
+        let protocol = self.protocol_accrued;
+        require!(
+            pool > 0 || creator > 0 || protocol > 0,
+            "Nothing to withdraw"
+        );
+        self.pool_accrued = 0;
+        self.creator_accrued = 0;
+        self.protocol_accrued = 0;
+        if pool > 0 {
+            Promise::new(self.pool_account.clone())
+                .transfer(NearToken::from_yoctonear(pool))
+                .detach();
+        }
+        if creator > 0 {
+            Promise::new(self.payout_account.clone())
+                .transfer(NearToken::from_yoctonear(creator))
+                .detach();
+        }
+        if protocol > 0 {
+            Promise::new(self.protocol_account.clone())
+                .transfer(NearToken::from_yoctonear(protocol))
+                .detach();
+        }
+        (U128(pool), U128(creator), U128(protocol))
     }
 
     // Views
@@ -213,6 +251,19 @@ impl Token {
 
     pub fn claim_fee(&self) -> U128 {
         U128(self.claim_fee)
+    }
+
+    pub fn pool_account(&self) -> AccountId {
+        self.pool_account.clone()
+    }
+
+    /// Share of the supply mined so far, in basis points. The dashboard uses
+    /// this instead of deriving it from two numbers.
+    pub fn mined_bps(&self) -> u32 {
+        if self.supply == 0 {
+            return 0;
+        }
+        (self.mined.saturating_mul(BPS_DENOMINATOR as u128) / self.supply) as u32
     }
 
     pub fn accrued_fees(&self) -> (U128, U128, U128) {
@@ -392,12 +443,39 @@ mod tests {
             accounts(1),
             accounts(2),
             accounts(3),
+            accounts(4),
             "Swarm".to_string(),
             "SWRM".to_string(),
             18,
             U128(SUPPLY),
             U128(REWARD),
             U128(CAP),
+            5_000,
+            NOW + 1_000_000_000_000_000,
+        )
+    }
+
+    /// Demo profile: one proof releases 2.5% of supply, so 40 proofs cover the
+    /// whole ladder and 20 proofs reach the 50% threshold.
+    fn setup_demo() -> Token {
+        let context = VMContextBuilder::new()
+            .predecessor_account_id(accounts(1))
+            .block_timestamp(NOW)
+            .prepaid_gas(Gas::from_tgas(300))
+            .build();
+        testing_env!(context);
+        let reward = SUPPLY / 40;
+        Token::new(
+            accounts(1),
+            accounts(2),
+            accounts(3),
+            accounts(4),
+            "Swarm".to_string(),
+            "SWRM".to_string(),
+            18,
+            U128(SUPPLY),
+            U128(reward),
+            U128(reward),
             5_000,
             NOW + 1_000_000_000_000_000,
         )
@@ -505,5 +583,55 @@ mod tests {
     fn finalize_before_deadline_is_rejected() {
         let mut token = setup(CLAIM_FEE_YOCTO);
         token.finalize();
+    }
+
+    #[test]
+    fn withdraw_fees_pays_three_shares_and_clears() {
+        let mut token = setup(CLAIM_FEE_YOCTO);
+        let now = env::block_timestamp();
+        token.try_mine(&valid_digest(), accounts(1), CLAIM_FEE_YOCTO, now);
+        let (pool, creator, protocol) = token.withdraw_fees();
+        assert_eq!(pool, U128(CLAIM_FEE_YOCTO * 5 / 10));
+        assert_eq!(creator, U128(CLAIM_FEE_YOCTO * 3 / 10));
+        assert_eq!(protocol, U128(CLAIM_FEE_YOCTO * 2 / 10));
+        assert_eq!(
+            token.accrued_fees(),
+            (U128(0), U128(0), U128(0)),
+            "accrued shares must be cleared before the transfers"
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "Nothing to withdraw")]
+    fn withdraw_without_fees_is_rejected() {
+        let mut token = setup(CLAIM_FEE_YOCTO);
+        token.withdraw_fees();
+    }
+
+    #[test]
+    fn finalize_is_valid_once_half_the_supply_is_mined() {
+        let mut token = setup_demo();
+        let now = env::block_timestamp();
+        // One proof releases 2.5% of supply, so 20 proofs reach the threshold.
+        for index in 0..20u32 {
+            let miner: AccountId = format!("miner{}.testnet", index).parse().unwrap();
+            token.try_mine(&valid_digest(), miner, CLAIM_FEE_YOCTO, now);
+        }
+        assert_eq!(token.mined_bps(), 5_000);
+        testing_env!(signed(0).block_timestamp(token.deadline_ns + 1).build());
+        assert_eq!(token.finalize(), ProjectStatus::Valid);
+        assert_eq!(token.burned(), U128(SUPPLY - token.mined().0));
+    }
+
+    #[test]
+    fn a_large_reward_can_skip_levels() {
+        // 10% of supply per proof means one proof moves four levels.
+        let mut token = setup(CLAIM_FEE_YOCTO);
+        let now = env::block_timestamp();
+        token.reward_per_proof = SUPPLY / 10;
+        token.epoch_cap = SUPPLY / 10;
+        token.try_mine(&valid_digest(), accounts(1), CLAIM_FEE_YOCTO, now);
+        assert_eq!(token.mined_bps(), 1_000);
+        assert_eq!(token.level(), 5);
     }
 }
