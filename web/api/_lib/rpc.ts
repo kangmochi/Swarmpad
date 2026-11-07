@@ -80,10 +80,10 @@ export async function viewCall<T>(
     finality: "final",
     account_id: account,
     method_name: method,
-    args_base64: Buffer.from(JSON.stringify(args)).toString("base64"),
+    args_base64: btoa(JSON.stringify(args)),
   })) as { result: number[] };
 
-  const text = Buffer.from(result.result).toString("utf8").trim();
+  const text = new TextDecoder().decode(Uint8Array.from(result.result)).trim();
   if (text === "") {
     return null as T;
   }

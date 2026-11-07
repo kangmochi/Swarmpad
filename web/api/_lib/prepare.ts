@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 import { FACTORY_ID } from "../../src/lib/config";
 import { parseMarkdown, resolveLaunch, type Draft } from "../../src/lib/launch";
 import { belowTarget, digestPrefix, targetWords, toHex } from "../../src/lib/sha256";
@@ -23,13 +21,15 @@ export interface CallIntent {
   gas: string;
 }
 
-function configHash(markdown: string): string {
-  return `sha256:${createHash("sha256").update(markdown, "utf8").digest("hex")}`;
+async function configHash(markdown: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(markdown));
+  const hex = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return `sha256:${hex}`;
 }
 
 export async function buildLaunch(markdown: string, creator: string): Promise<LaunchIntent> {
   const draft: Draft = parseMarkdown(markdown);
-  const hash = configHash(markdown);
+  const hash = await configHash(markdown);
   const resolved = resolveLaunch(draft, creator, hash);
   const deposit = await launchDeposit();
   const slug = draft.frontmatter.slug ?? "";
@@ -78,9 +78,10 @@ export async function checkProof(token: string, preimage: string): Promise<Proof
     return { valid: false, reason: "deadline has passed" };
   }
 
-  let bytes: Buffer;
+  let bytes: Uint8Array;
   try {
-    bytes = Buffer.from(preimage, "base64");
+    const binary = atob(preimage);
+    bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
   } catch {
     return { valid: false, reason: "preimage is not base64" };
   }
@@ -88,7 +89,7 @@ export async function checkProof(token: string, preimage: string): Promise<Proof
     return { valid: false, reason: "preimage must be 16 bytes" };
   }
 
-  const digest = digestPrefix(Uint8Array.from(bytes), new Uint32Array(4));
+  const digest = digestPrefix(bytes, new Uint32Array(4));
   const target = targetWords(BigInt(state.target));
   if (!belowTarget(digest, target)) {
     return {
