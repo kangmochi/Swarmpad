@@ -1,0 +1,16 @@
+[package]
+name = "swarmpad-common"
+description = "Shared constants, curve and types for Swarmpad contracts"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+near-sdk = { workspace = true }
+# near-sdk 5.30.0 expects the pre-0.4.1 near-sys API (universal state init).
+near-sys = "=0.4.0"
+
+[dev-dependencies]
+near-sdk = { workspace = true, features = ["unit-testing"] }
