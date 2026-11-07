@@ -165,6 +165,10 @@ It never holds a key: every write comes back as an unsigned call for the caller
 to sign. Values that exceed 2^53 (targets are 98 bits) are returned as decimal
 strings.
 
+## Built by
+
+Swarmpad is the second project by kangmochi, after Phylaxtag.
+
 ## License
 
 MIT
