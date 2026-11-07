@@ -166,6 +166,36 @@ export async function rpcView<T>(
   try {
     let lastError: Error | null = null;
 
+    // First call of a session: no node has answered yet, so ask them all at
+    // once and take the first reply. On a network where one node is blocked or
+    // slow this saves the visitor the whole retry ladder.
+    if (health.size === 0) {
+      const endpoints = available();
+      try {
+        const first = await new Promise<{ endpoint: string; value: unknown }>(
+          (resolve, reject) => {
+            let pending = endpoints.length;
+            let failure: Error | null = null;
+            for (const endpoint of endpoints) {
+              post(endpoint, account, method, args)
+                .then((value) => resolve({ endpoint, value }))
+                .catch((error: unknown) => {
+                  failure = error instanceof Error ? error : new Error("RPC view failed");
+                  pending -= 1;
+                  if (pending === 0) {
+                    reject(failure);
+                  }
+                });
+            }
+          },
+        );
+        noteSuccess(first.endpoint);
+        return first.value as T;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error("No NEAR node answered");
+      }
+    }
+
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       for (const endpoint of available()) {
         try {

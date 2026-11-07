@@ -115,7 +115,8 @@ export function ProjectDetail() {
     );
   }
 
-  const { record } = view;
+  const { record, meta } = view;
+  const decimals = meta?.decimals ?? DISPLAY_DECIMALS;
   const expired = token !== null && record.deadline_ns / 1e6 <= now;
   const mood = view.status === "Valid" ? "happy" : view.status === "Failed" ? "sad" : "idle";
 
@@ -132,7 +133,7 @@ export function ProjectDetail() {
             <p className="mono-label">
               {slug} · {record.token_account}
             </p>
-            <h1>{slug}</h1>
+            <h1>{meta?.name ?? slug}</h1>
             <div className="console__meta">
               <StatusChip status={view.status} unknown={token === null} />
               <span className="mono-label">level {view.level} / 40</span>
@@ -185,27 +186,27 @@ export function ProjectDetail() {
           <dl className="statgrid">
             <div>
               <dt className="mono-label">supply</dt>
-              <dd>{formatToken(token.supply, DISPLAY_DECIMALS)}</dd>
+              <dd>{formatToken(token.supply, decimals)}</dd>
             </div>
             <div>
               <dt className="mono-label">mined</dt>
-              <dd>{formatToken(token.mined, DISPLAY_DECIMALS)}</dd>
+              <dd>{formatToken(token.mined, decimals)}</dd>
             </div>
             <div>
               <dt className="mono-label">remaining</dt>
-              <dd>{formatToken(token.remaining, DISPLAY_DECIMALS)}</dd>
+              <dd>{formatToken(token.remaining, decimals)}</dd>
             </div>
             <div>
               <dt className="mono-label">burned</dt>
-              <dd>{formatToken(token.burned, DISPLAY_DECIMALS)}</dd>
+              <dd>{formatToken(token.burned, decimals)}</dd>
             </div>
             <div>
               <dt className="mono-label">reward / proof</dt>
-              <dd>{formatToken(token.rewardPerProof, DISPLAY_DECIMALS)}</dd>
+              <dd>{formatToken(token.rewardPerProof, decimals)}</dd>
             </div>
             <div>
               <dt className="mono-label">epoch cap</dt>
-              <dd>{formatToken(token.epochCap, DISPLAY_DECIMALS)}</dd>
+              <dd>{formatToken(token.epochCap, decimals)}</dd>
             </div>
             <div>
               <dt className="mono-label">threshold</dt>

@@ -40,6 +40,7 @@ export async function loadProject(record: ProjectRecord): Promise<ProjectView> {
       minedBps: minedBps(token.mined, token.supply),
       level: token.level,
       progress: Number(token.mined) / Math.max(1, Number(token.supply)),
+      meta: token.meta,
     };
     cache.set(record.slug, { at: Date.now(), value });
     return value;
@@ -64,6 +65,7 @@ export async function loadProjectList(record: ProjectRecord): Promise<ProjectVie
       minedBps: minedBps(summary.mined, supply),
       level: levelFor(summary.mined, supply),
       progress: Number(summary.mined) / Math.max(1, Number(supply)),
+      meta: summary.meta,
     };
   } catch (error) {
     if (error instanceof RpcError && error.retryable) {

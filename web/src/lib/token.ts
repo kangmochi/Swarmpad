@@ -1,20 +1,87 @@
 import { rpcView } from "./rpc";
-import type { ProjectStatus, TokenState } from "./types";
+import type { ProjectStatus, TokenMeta, TokenState } from "./types";
 
 export interface TokenSummary {
   account: string;
   status: ProjectStatus;
   mined: bigint;
+  meta: TokenMeta | null;
 }
 
 type Accrued = [string, string, string];
 
+const META_TTL = 300_000;
+const STORAGE_PREFIX = "swarmpad:meta:";
+const STORAGE_TTL = 3_600_000;
+
+function readStored(account: string): { at: number; value: TokenMeta | null } | null {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_PREFIX + account);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw) as { at: number; value: TokenMeta | null };
+    if (Date.now() - parsed.at > STORAGE_TTL) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeStored(account: string, value: TokenMeta | null): void {
+  try {
+    window.localStorage.setItem(
+      STORAGE_PREFIX + account,
+      JSON.stringify({ at: Date.now(), value }),
+    );
+  } catch {
+    // Storage can be full or blocked; the in-memory cache still works.
+  }
+}
+
+const metaCache = new Map<string, { at: number; value: TokenMeta | null }>();
+
 /**
- * The token exports `ft_balance_of` but not `ft_metadata` (the metadata trait
- * is implemented without the `#[near]` attribute, so it is not an exported
- * method). Nothing here reads a name, a ticker or a decimals value from chain:
- * the app shows the slug and formats with DISPLAY_DECIMALS.
+ * `ft_metadata` is only exported by the token v2 build. Projects launched on
+ * the first code answer "Method not found", which is a normal state here, not
+ * an error to show: the caller falls back to the slug and 18 decimals. Both
+ * outcomes are cached so a list of old projects does not retry the failing view
+ * on every render.
  */
+export async function fetchMetadata(account: string): Promise<TokenMeta | null> {
+  const cached = metaCache.get(account);
+  if (cached && Date.now() - cached.at < META_TTL) {
+    return cached.value;
+  }
+  const stored = readStored(account);
+  if (stored) {
+    metaCache.set(account, stored);
+    return stored.value;
+  }
+
+  try {
+    const raw = await rpcView<{ name: string; symbol: string; decimals: number }>(
+      account,
+      "ft_metadata",
+    );
+    const value: TokenMeta = {
+      name: raw.name,
+      symbol: raw.symbol,
+      decimals: raw.decimals,
+    };
+    metaCache.set(account, { at: Date.now(), value });
+    writeStored(account, value);
+    return value;
+  } catch {
+    metaCache.set(account, { at: Date.now(), value: null });
+    writeStored(account, null);
+    return null;
+  }
+}
+
+/** Full token state, for the project console. */
 export async function fetchTokenState(account: string): Promise<TokenState> {
   const view = <T,>(method: string): Promise<T> => rpcView<T>(account, method);
 
@@ -33,6 +100,7 @@ export async function fetchTokenState(account: string): Promise<TokenState> {
     claimFee,
     accrued,
     poolAccount,
+    meta,
   ] = await Promise.all([
     view<ProjectStatus>("status"),
     view<string>("supply"),
@@ -48,6 +116,7 @@ export async function fetchTokenState(account: string): Promise<TokenState> {
     view<string>("claim_fee"),
     view<Accrued>("accrued_fees"),
     view<string>("pool_account"),
+    fetchMetadata(account),
   ]);
 
   return {
@@ -70,18 +139,20 @@ export async function fetchTokenState(account: string): Promise<TokenState> {
       protocol: BigInt(accrued[2]),
     },
     poolAccount,
+    meta,
   };
 }
 
 /**
- * Two calls instead of fourteen. Lists show status and the mined share, and the
- * registry already carries the supply, so the level is derived with `levelFor`.
+ * Lists show status, mined share and the ticker. The registry carries the
+ * supply, so the level is derived with `levelFor` instead of another call.
  */
 export async function fetchTokenSummary(account: string): Promise<TokenSummary> {
-  const [status, mined] = await Promise.all([
+  const [status, mined, meta] = await Promise.all([
     rpcView<ProjectStatus>(account, "status"),
     rpcView<string>(account, "mined"),
+    fetchMetadata(account),
   ]);
 
-  return { account, status, mined: BigInt(mined) };
+  return { account, status, mined: BigInt(mined), meta };
 }
