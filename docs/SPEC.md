@@ -1,4 +1,4 @@
-# Swarmpad — Spec
+# Swarmpad - Spec
 
 Agreed mechanics for the first release. Everything in this file is a decision,
 not an idea; anything still open is listed at the end.

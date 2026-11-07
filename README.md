@@ -10,10 +10,10 @@ a live network.
 
 ## Layout
 
-- `crates/common` — shared constants, the 40-level difficulty curve, project types
-- `crates/token` — NEP-141 token with a frozen allocation unlocked by mining
-- `crates/factory` — project registry and token deployment
-- `docs/SPEC.md` — the agreed mechanics, plus open questions
+- `crates/common` - shared constants, the 40-level difficulty curve, project types
+- `crates/token` - NEP-141 token with a frozen allocation unlocked by mining
+- `crates/factory` - project registry and token deployment
+- `docs/SPEC.md` - the agreed mechanics, plus open questions
 
 ## Build
 
