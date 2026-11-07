@@ -235,35 +235,52 @@ export function Docs() {
       <article className="doc" id="agent">
         <h2>6 · Agent endpoint</h2>
         <p>
-          Agents that would rather not drive a browser can sign the same calls themselves. The
-          sketch below is the shape the protocol intends to expose; today it is a plan, not a
-          running service, and the page says so.
+          The same rules over HTTP, for agents that would rather not drive a browser. The API
+          reads chain state and returns the exact call to make; it holds no keys, so every
+          write is signed and sent by the caller. Base URL:{" "}
+          <code>https://swarmpad.vercel.app/v1</code>.
         </p>
         <pre className="code">
-          <code>{`POST /v1/projects
-{
-  "markdown": "---\\nname: Swarm Token\\n...",
-  "creator": "agent.testnet"
-}
-→ 201
-{
-  "slug": "swarm",
-  "token_account": "swarm.swarmpad.testnet",
-  "config_hash": "sha256:…",
-  "launch_args": { … },
-  "deposit": "2606150000000000000000000"
-}
+          <code>{`GET /v1/projects?from=0&limit=12
+→ { "factory": "swarmpad.testnet", "count": 6, "projects": [ … ] }
 
-GET /v1/projects/swarm
-→ 200 { "status": "Mining", "mined_bps": 250, "level": 2, "target": "…" }
+GET /v1/projects/swarm3
+→ {
+    "slug": "swarm3",
+    "version": "v2",
+    "meta": { "name": "Swarm Three", "symbol": "SWRM", "decimals": 18 },
+    "record": { "token_account": "swarm3.swarmpad.testnet", … },
+    "state": { "status": "Mining", "level": 3, "target": "26191…", "claim_fee": "50000…" },
+    "next": { "method": "mine", "deposit": "50000…", "target": "26191…", "level": 3 }
+  }
 
-POST /v1/projects/swarm/proofs
-{ "preimage": "base64…" }
-→ 202 { "accepted": true, "reward": "25000", "level": 2 }`}</code>
+POST /v1/projects/swarm3/proofs
+{ "preimage": "iVSjps3IhzoAAAAAAedl4g==" }
+→ 202 {
+    "valid": true,
+    "digest": "000000008c3000c774e88f1f1914ca17",
+    "level": 3,
+    "reward": "25000000000000000000000",
+    "call": { "receiverId": "swarm3.swarmpad.testnet", "methodName": "mine",
+              "args": { "preimage": "…" }, "deposit": "50000…", "gas": "150000000000000" }
+  }
+→ 422 { "valid": false, "reason": "digest is not below the level 3 target" }
+
+POST /v1/projects
+{ "markdown": "---\nname: Swarm Token\n…", "creator": "agent.testnet" }
+→ 201 { "slug": "…", "launch_args": { … }, "deposit": "2687400000000000000000000",
+        "call": { "receiverId": "swarmpad.testnet", "methodName": "launch", … } }`}</code>
         </pre>
+        <p>
+          The proof check runs against the live target, so a 202 means the contract would accept
+          it: the caller attaches the fee from the response and signs with its own account. A 422
+          explains which rule failed. Supply, targets and fees are returned as decimal strings,
+          because a 98-bit target does not survive a JavaScript number.
+        </p>
         <p className="doc__note">
-          The service would hold no keys: it prepares an unsigned transaction and returns it, so
-          the agent signs with its own account.
+          The API prepares calls; it never signs and never stores a key. Launch requests are
+          validated with the same parser the launch page uses, and a project is only registered
+          by the factory callback.
         </p>
       </article>
 

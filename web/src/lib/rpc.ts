@@ -64,12 +64,27 @@ export function isMissingAccount(error: unknown): boolean {
   return /does not exist|UNKNOWN_ACCOUNT/i.test(error.message);
 }
 
-function decode(bytes: number[]): unknown {
-  const text = new TextDecoder().decode(Uint8Array.from(bytes));
-  if (text.trim() === "") {
+/**
+ * u128 values arrive as bare JSON numbers. Anything wider than 2^53 loses
+ * digits in JSON.parse, so long integers are quoted before parsing and the
+ * caller keeps the exact value (targets are 98 bits at level 1).
+ */
+export function parseLossless(text: string): unknown {
+  const trimmed = text.trim();
+  if (trimmed === "") {
     return null;
   }
-  return JSON.parse(text) as unknown;
+  // A view that returns a single u128 arrives as bare digits.
+  if (/^-?\d{16,}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const quoted = trimmed.replace(/([:\[,]\s*)(-?\d{16,})(\s*[,\]}])/g, '$1"$2"$3');
+  return JSON.parse(quoted) as unknown;
+}
+
+function decode(bytes: number[]): unknown {
+  const text = new TextDecoder().decode(Uint8Array.from(bytes));
+  return parseLossless(text);
 }
 
 function cool(endpoint: string): void {

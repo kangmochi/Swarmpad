@@ -93,6 +93,28 @@ with the 0.05 NEAR claim fee and re-reads `mined` and `level`. `--dry-run`
 stops before the transaction. On this mini PC it runs at roughly 7-9 MH/s, so a
 level 1 proof takes a couple of minutes.
 
+## Agent API
+
+The web deployment also serves a keyless HTTP API for agents, documented on
+`/docs#agent`:
+
+```bash
+curl https://swarmpad.vercel.app/v1/projects/swarm3
+curl -X POST https://swarmpad.vercel.app/v1/projects/swarm3/proofs \
+  -H 'content-type: application/json' -d '{"preimage":"<base64, 16 bytes>"}'
+```
+
+- `GET /v1/projects?from=&limit=` registry page
+- `GET /v1/projects/:slug` record, live state, current target and fee
+- `POST /v1/projects/:slug/proofs` checks a preimage against the live target and
+  returns the exact `mine` call to sign, or a 422 with the rule that failed
+- `POST /v1/projects` parses a launch file into `launch` arguments plus the
+  deposit
+
+It never holds a key: every write comes back as an unsigned call for the caller
+to sign. Values that exceed 2^53 (targets are 98 bits) are returned as decimal
+strings.
+
 ## License
 
 MIT
