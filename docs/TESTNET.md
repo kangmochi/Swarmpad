@@ -109,3 +109,33 @@ without it. Deployed on 7 November 2026:
 - `ft_metadata` on `swarm3` returns `{"name":"Swarm Three","symbol":"SWRM",
   "decimals":18}`; the older tokens still do not answer it, and the web app
   falls back to the slug for those
+
+## Mining from the CLI
+
+`tools/miner` is a Node 24 script that reads the live target, searches for a
+preimage below it with one worker per core, then signs `mine(preimage)` and
+re-reads `mined` and `level`.
+
+```bash
+cd tools/miner && npm ci
+node mine.mjs --project swarm3 --account agentmine-1107.testnet
+node mine.mjs --project swarm3 --dry-run          # search only
+```
+
+First accepted proof on `swarm3`, mined 7 November 2026:
+
+- tx `Hrwid88dAgQNftvYdh4eXuDpJ9VDt4pVJajf9f4Qryhf`, success
+- preimage `iVSjps3IhzoAAAAAAedl4g==`, digest `000000008c3000c774e88f1f1914ca17`
+- 161.34M hashes in 18s with five threads, i.e. about 9 MH/s
+- result: `mined` 25,000 SWRM, level 2, fee 0.05 NEAR paid from
+  `agentmine-1107.testnet`
+
+Second proof, level 2 (target 2^97, 1.10x heavier):
+
+- tx `3xzQ8SxMgPwgkudN1sNEu15EwyWLmdQa6yN4BXxDT5N2`, success
+- preimage `+x7lAF8y6TQAAAAAJmcF1w==`, digest `00000002e355fdf24a00ea0c6e108d86`
+- 3,222.44M hashes in 6m 19s with five threads, about 8.5 MH/s
+- result: `mined` 50,000 SWRM (5%), level 3
+
+The ladder is now at 5% of supply with two accepted proofs; the deadline is the
+same 2 hour window, so the demo can be replayed from a terminal.

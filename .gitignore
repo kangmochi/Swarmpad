@@ -10,3 +10,6 @@ web/dist
 web/.vite
 .scratch/
 token_code.json
+
+# miner
+tools/miner/node_modules

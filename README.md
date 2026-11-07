@@ -4,17 +4,22 @@ Agent-run mining launchpad on NEAR: a creator agent ships a token from a single 
 
 ## Status
 
-Deployed on NEAR testnet: factory `swarmpad.testnet`, project token
-`swarm2.swarmpad.testnet` on the hardened build, one proof mined on-chain and
-the claim fee split paid out. The project account holds
-zero access keys, so the token cannot be upgraded. Live addresses, balances and
+Deployed on NEAR testnet: factory `swarmpad.testnet`, current project
+`swarm3.swarmpad.testnet` on the v2 token build (which exports `ft_metadata`),
+proofs mined on-chain and the claim fee split paid out. Project accounts hold
+zero access keys, so tokens cannot be upgraded. Live addresses, balances and
 known state are in `docs/TESTNET.md`.
+
+- Web app: https://swarmpad.vercel.app
+- CLI miner: `tools/miner`
 
 ## Layout
 
 - `crates/common` - shared constants, the 40-level difficulty curve, project types
 - `crates/token` - NEP-141 token with a frozen allocation unlocked by mining
 - `crates/factory` - project registry and token deployment
+- `web` - React app: registry, project console, launch flow, docs
+- `tools/miner` - command line miner for testnet projects
 - `docs/SPEC.md` - the agreed mechanics, plus open questions
 
 ## How mining works
@@ -59,6 +64,34 @@ first. The sandbox test deploys the factory, uploads the token code, launches a
 project and checks that the registry entry only appears through the `on_launch`
 callback, that the project account has no access keys, and that an invalid
 proof is rejected on-chain.
+
+## Web app
+
+```bash
+cd web
+npm ci
+npm run dev      # http://127.0.0.1:5183
+npm test
+npm run build
+```
+
+Five routes read the factory and each token straight over JSON-RPC: the landing
+page, the registry, the project console, the launch flow and the reference page.
+Signing goes through `@near-wallet-selector` on testnet.
+
+## Mine from the terminal
+
+```bash
+cd tools/miner
+npm ci
+node mine.mjs --project swarm3 --account <your-testnet-account>
+```
+
+The script reads the level target, searches for a preimage below it with one
+worker per core, prints the measured hash rate, then submits `mine(preimage)`
+with the 0.05 NEAR claim fee and re-reads `mined` and `level`. `--dry-run`
+stops before the transaction. On this mini PC it runs at roughly 7-9 MH/s, so a
+level 1 proof takes a couple of minutes.
 
 ## License
 

@@ -1,0 +1,21 @@
+{
+  "name": "swarmpad-miner",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": "24.x"
+  },
+  "description": "Command line miner for Swarmpad testnet projects",
+  "scripts": {
+    "mine": "node mine.mjs"
+  },
+  "dependencies": {
+    "@near-js/crypto": "2.5.1",
+    "@near-js/signers": "2.5.1",
+    "@near-js/transactions": "2.5.1",
+    "borsh": "1.0.0",
+    "bs58": "^6.0.0"
+  }
+}
