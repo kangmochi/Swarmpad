@@ -5,7 +5,9 @@ What to open, and what each link proves.
 ## Entry points
 
 - App: https://swarmpad.vercel.app
-- Repository: https://github.com/kangmochi/Swarmpad
+- Repository: https://github.com/kangmochi/Swarmpad — private while the build is
+  being finished, public again at submission. A reviewer who needs it earlier can
+  ask for read access.
 - Factory: https://testnet.nearblocks.io/address/swarmpad.testnet
 - Spec: `docs/SPEC.md` · testnet state: `docs/TESTNET.md` · demo script: `docs/DEMO.md`
 
