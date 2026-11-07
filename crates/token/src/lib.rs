@@ -496,6 +496,79 @@ mod tests {
         builder
     }
 
+    fn register(account: AccountId, deposit: u128) {
+        let ctx = VMContextBuilder::new()
+            .predecessor_account_id(account)
+            .attached_deposit(NearToken::from_yoctonear(deposit))
+            .block_timestamp(NOW)
+            .prepaid_gas(Gas::from_tgas(300))
+            .build();
+        testing_env!(ctx);
+    }
+
+    #[test]
+    fn storage_deposit_registers_an_account() {
+        let mut token = setup(0);
+        register(accounts(2), 10_000_000_000_000_000_000_000);
+        token.storage_deposit(Some(accounts(2)), None);
+        assert!(token.storage_balance_of(accounts(2)).is_some());
+        assert_eq!(token.ft_balance_of(accounts(2)), U128(0));
+    }
+
+    #[test]
+    fn ft_transfer_moves_tokens_between_registered_accounts() {
+        let mut token = setup(0);
+        register(accounts(2), 10_000_000_000_000_000_000_000);
+        token.storage_deposit(Some(accounts(2)), None);
+        let now = env::block_timestamp();
+        token.try_mine(&valid_digest(), accounts(1), CLAIM_FEE_YOCTO, now);
+
+        // 1 yoctoNEAR is required to authorise a transfer.
+        register(accounts(1), 1);
+        token.ft_transfer(accounts(2), U128(REWARD / 2), None);
+
+        assert_eq!(token.ft_balance_of(accounts(1)), U128(REWARD / 2));
+        assert_eq!(token.ft_balance_of(accounts(2)), U128(REWARD / 2));
+        assert_eq!(token.ft_total_supply(), U128(REWARD));
+    }
+
+    #[test]
+    #[should_panic(expected = "is not registered")]
+    fn ft_transfer_to_unregistered_account_is_rejected() {
+        let mut token = setup(0);
+        let now = env::block_timestamp();
+        token.try_mine(&valid_digest(), accounts(1), CLAIM_FEE_YOCTO, now);
+        register(accounts(1), 1);
+        token.ft_transfer(accounts(5), U128(1), None);
+    }
+
+    #[test]
+    #[should_panic(expected = "Requires attached deposit of exactly 1 yoctoNEAR")]
+    fn ft_transfer_without_yocto_is_rejected() {
+        let mut token = setup(0);
+        register(accounts(2), 10_000_000_000_000_000_000_000);
+        token.storage_deposit(Some(accounts(2)), None);
+        let now = env::block_timestamp();
+        token.try_mine(&valid_digest(), accounts(1), CLAIM_FEE_YOCTO, now);
+        register(accounts(1), 0);
+        token.ft_transfer(accounts(2), U128(1), None);
+    }
+
+    #[test]
+    fn ft_transfer_call_returns_a_promise_for_registered_receiver() {
+        let mut token = setup(0);
+        register(accounts(2), 10_000_000_000_000_000_000_000);
+        token.storage_deposit(Some(accounts(2)), None);
+        let now = env::block_timestamp();
+        token.try_mine(&valid_digest(), accounts(1), CLAIM_FEE_YOCTO, now);
+        register(accounts(1), 1);
+        match token.ft_transfer_call(accounts(2), U128(1), None, "{}".to_string()) {
+            PromiseOrValue::Promise(_) => {}
+            PromiseOrValue::Value(_) => panic!("expected a cross-contract call"),
+        }
+        assert_eq!(token.ft_total_supply(), U128(REWARD));
+    }
+
     #[test]
     fn mining_mints_one_reward() {
         let mut token = setup(CLAIM_FEE_YOCTO);

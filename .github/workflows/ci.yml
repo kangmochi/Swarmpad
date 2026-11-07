@@ -24,8 +24,13 @@ jobs:
       - name: Clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
 
+      - name: Build wasm
+        run: >
+          cargo build
+          -p swarmpad-common -p swarmpad-token -p swarmpad-factory
+          --target wasm32-unknown-unknown --release
+
+      # Unit tests plus the sandbox integration test, which loads the wasm
+      # artifacts built in the previous step.
       - name: Test
         run: cargo test --workspace
-
-      - name: Build wasm
-        run: cargo build --workspace --target wasm32-unknown-unknown --release

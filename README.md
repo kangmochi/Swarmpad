@@ -44,13 +44,21 @@ The demo profile does not change the target, the number of levels or the curve;
 it only makes the reward coarse enough to show progress live. Both profiles are
 recorded on-chain at launch and readable from the token's view methods.
 
-## Build
+## Build and test
 
 ```
 rustup target add wasm32-unknown-unknown
+cargo build -p swarmpad-common -p swarmpad-token -p swarmpad-factory \
+  --target wasm32-unknown-unknown --release
 cargo test --workspace
-cargo build --workspace --target wasm32-unknown-unknown --release
 ```
+
+`cargo test --workspace` runs the unit tests plus one sandbox test in
+`integration-tests/`; the sandbox test loads the wasm artifacts, so build them
+first. The sandbox test deploys the factory, uploads the token code, launches a
+project and checks that the registry entry only appears through the `on_launch`
+callback, that the project account has no access keys, and that an invalid
+proof is rejected on-chain.
 
 ## License
 

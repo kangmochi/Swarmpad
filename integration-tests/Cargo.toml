@@ -1,0 +1,16 @@
+[package]
+name = "swarmpad-integration-tests"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow = "1"
+base64 = "0.22"
+# The host has libssl.so but no dev headers or pkg-config, so build OpenSSL.
+openssl = { version = "0.10", features = ["vendored"] }
+near-workspaces = { version = "=0.24.0", features = ["experimental"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
