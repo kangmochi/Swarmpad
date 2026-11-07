@@ -227,6 +227,21 @@ impl Factory {
     pub fn project_count(&self) -> u64 {
         self.projects.len()
     }
+
+    /// Registry page for the web app. The registry is an unordered map, so the
+    /// order is the insertion order and can change when an entry is removed,
+    /// which never happens today. `limit` is capped at 100 to keep the view
+    /// cheap to serve.
+    pub fn projects(&self, from: Option<u64>, limit: Option<u64>) -> Vec<Project> {
+        let from = from.unwrap_or(0) as usize;
+        let limit = limit.unwrap_or(50).min(100) as usize;
+        self.projects
+            .iter()
+            .skip(from)
+            .take(limit)
+            .map(|(_, project)| project)
+            .collect()
+    }
 }
 
 /// `[a-z0-9-]`, 1..=32 characters, no leading or trailing hyphen.
@@ -346,20 +361,49 @@ mod tests {
         let _ = factory.launch(args);
     }
 
-    #[test]
-    #[allow(deprecated)]
-    fn on_launch_records_the_project_after_success() {
-        let mut factory = build();
-        let project = Project {
-            slug: "swarm".to_string(),
-            token_account: "swarm.factory.testnet".parse().unwrap(),
+    fn project_ref(slug: &str) -> Project {
+        Project {
+            slug: slug.to_string(),
+            token_account: format!("{}.factory.testnet", slug).parse().unwrap(),
             creator_id: accounts(4),
             payout_account: accounts(4),
             supply: U128(1_000_000),
             threshold_bps: 5_000,
             deadline_ns: 1,
-            config_hash: "sha256:00".to_string(),
-        };
+            config_hash: format!("sha256:{slug}"),
+        }
+    }
+
+    #[allow(deprecated)]
+    fn record(factory: &mut Factory, slug: &str) {
+        near_sdk::test_utils::testing_env_with_promise_results(
+            VMContextBuilder::new()
+                .predecessor_account_id("factory.testnet".parse().unwrap())
+                .build(),
+            near_sdk::PromiseResult::Successful(vec![]),
+        );
+        factory.on_launch(project_ref(slug));
+    }
+
+    #[test]
+    fn projects_view_paginates() {
+        let mut factory = build();
+        for slug in ["alpha", "beta", "gamma"] {
+            record(&mut factory, slug);
+        }
+        assert_eq!(factory.projects(None, None).len(), 3);
+        assert_eq!(factory.projects(Some(1), Some(1)).len(), 1);
+        assert_eq!(factory.projects(Some(1), Some(1))[0].slug, "beta");
+        assert_eq!(factory.projects(Some(3), None).len(), 0);
+        // A limit above the cap is clamped, not rejected.
+        assert_eq!(factory.projects(None, Some(500)).len(), 3);
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn on_launch_records_the_project_after_success() {
+        let mut factory = build();
+        let project = project_ref("swarm");
         near_sdk::test_utils::testing_env_with_promise_results(
             VMContextBuilder::new()
                 .predecessor_account_id("factory.testnet".parse().unwrap())
