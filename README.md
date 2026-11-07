@@ -52,8 +52,10 @@ A token for the swarm.
 `supply`, `reward_per_proof`, `epoch_cap`, `threshold_bps` and `duration_days`
 are the creator's choice; `epoch_cap` must be at least `reward_per_proof` and
 `threshold_bps` sits between 5000 and 10000. The difficulty curve is not
-selectable. Paste the file into `/launch` to see the parsed launch, the derived
-token account and the exact deposit before signing, or send it to
+selectable. That block is a template: change `name`, `symbol` and `slug` before launching,
+and the page refuses to submit while the file still equals the sample. Paste the
+file into `/launch` to see the parsed launch, the derived token account and the
+exact deposit before signing, or send it to
 `POST /v1/projects` and get the same thing back as JSON.
 
 ## How mining works

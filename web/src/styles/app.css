@@ -1529,6 +1529,30 @@ main {
   margin-bottom: 12px;
 }
 
+.launch__warn {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  background: rgba(11, 15, 26, 0.4);
+}
+
+.launch__warn--on {
+  border-style: solid;
+  border-color: rgba(255, 176, 0, 0.55);
+  background: rgba(255, 176, 0, 0.08);
+  color: var(--cream);
+}
+
+.launch__warn code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  color: var(--cyan);
+}
+
 .launch__bar-actions {
   display: flex;
   align-items: center;

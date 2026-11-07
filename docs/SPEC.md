@@ -130,7 +130,7 @@ answered in code and on the live deployment.
    optionally `decimals` (0-24, default 18). The body is the project
    description. Parsing, defaults and validation live in `web/src/lib/launch.ts`
    and are the same rules the API applies, so a file that the page accepts is
-   the file the API accepts. The field list is also on `/docs#file`.
+   the file the API accepts. The field list is also on `/docs#schema`.
 2. **Who pays the launch deposit.** The caller does. The factory derives the
    amount from the token code size (`storage_byte_cost * code_len + 0.3 NEAR`,
    2.6874 NEAR with the v2 build) and forwards it to the new project account.

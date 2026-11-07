@@ -84,8 +84,12 @@ export function Docs() {
             </tbody>
           </table>
         </div>
+        <p className="doc__note">
+          The block above is a template, not a project: change name, symbol and slug before you
+          launch anything. The launch page says so too, and it refuses to submit while the file
+          still equals the sample.
+        </p>
       </article>
-
       <article className="doc" id="levels">
         <h2>2 · The level curve</h2>
         <p>
