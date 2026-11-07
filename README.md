@@ -14,7 +14,7 @@ addresses, balances and known state are in `docs/TESTNET.md`.
 
 - Web app: https://swarmpad.vercel.app
 - CLI miner: `tools/miner`
-- Demo script: `docs/DEMO.md` · checklist: `docs/SUBMISSION.md` · copy to paste: `docs/PITCH.md`
+- Demo script: `docs/DEMO.md` · video brief: `docs/VIDEO_BRIEF.md` · checklist: `docs/SUBMISSION.md` · copy to paste: `docs/PITCH.md`
 
 ![The landing page](docs/screenshots/01-home.png)
 
