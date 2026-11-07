@@ -8,62 +8,62 @@ only. No keys or credentials appear here.
 | Item | Value |
 | --- | --- |
 | Factory | `swarmpad.testnet` |
-| Current project token | `swarm.swarmpad.testnet` |
-| Earlier project token | `genesis.swarmpad.testnet` |
-| Ops funding account | `swarmpad-ops.testnet` |
+| Current project token | `swarm2.swarmpad.testnet` |
+| Earlier project tokens | `swarm.swarmpad.testnet`, `genesis.swarmpad.testnet` |
+| Ops funding accounts | `swarmpad-ops.testnet`, `swarmpad-buf.testnet` |
 | Miner account | `agentmine-1107.testnet` |
 | Factory explorer | https://testnet.nearblocks.io/address/swarmpad.testnet |
-| Token explorer | https://testnet.nearblocks.io/address/swarm.swarmpad.testnet |
-| Launch tx (current) | `BgxtP3njp87pKeQkW4y2r9fjyoyJmKYqnrTotNrNibWm` |
-| Mine tx (current) | `8juHi6Cfy82wRHXGb4ujGY5XdGtdzgctmCPhCEEWMP9Z` |
-| Launch tx (genesis) | `7R83EcakdbKLqvfEka6gL43iH4QQucAw7LXahAEw41P5` |
-| First mine tx (genesis) | `zDkrDjLBaZEWmwjoVvr8c8upg4GroEWh2ASbnbsrg6N` |
+| Token explorer | https://testnet.nearblocks.io/address/swarm2.swarmpad.testnet |
+| Launch tx (swarm2) | `JC15Xu5vfM5AvLhYkiJ3crfSe9oPiwixAHq4eKnjCNej` |
+| Mine tx (swarm2) | `7kKSfVTVpEe21TXN8UhXu79q1HY8WFg58kn9N3Nbwtnk` |
+| Fee payout tx (swarm2) | `CNwKXro55ph3dUwJuDxafrUQt9pfHCj4qb3hoVLxWPkh` |
 
-## Projects on this factory
+## Current build
 
-Both use the demo profile: supply 1,000,000 SWRM (18 decimals, `1e24` yocto),
-reward per proof 25,000 SWRM (2.5% of supply), per-account cap the same, 50%
-threshold, 30 minute deadline, level 1 target `3.169e29` = `2^98` (30 bit base).
+Both contracts are the hardened version from `main` at `cae79e4`:
 
-- `swarm` was created after the fix, with the deposit the factory derived
-  itself. One proof mined on-chain: `mined` = 25,000 SWRM, level now 2.
-- `genesis` was created on the pre-fix build by attaching 3 NEAR by hand. One
-  proof was mined and the level also moved to 2.
+- factory wasm 199,464 bytes, token wasm 230,615 bytes
+- `launch_deposit()` returns 2.60615 NEAR for the current token code
+- factory code was replaced in place with `without-init-call`, keeping the
+  existing registry; the token code was replaced with `set_token_code`
 
-Mining evidence for `genesis`: the first proof was found in 36 seconds of local
-hashing (about 5.7 MH/s on 6 cores). The claim fee split is visible on-chain:
-0.025 NEAR pool, 0.015 NEAR creator, 0.01 NEAR protocol.
+## Project `swarm2` (hardened build)
+
+Demo profile: supply 1,000,000 SWRM (18 decimals, `1e24` yocto), reward per
+proof 25,000 SWRM (2.5% of supply), per-account cap the same, 50% threshold,
+2 hour deadline, level 1 target `3.169e29` = `2^98` (30 bit base).
+
+- Launch used the derived deposit, 2.7 NEAR attached.
+- The project appears in the factory registry only because the `on_launch`
+  callback saw a successful deploy receipt. This is the path that failed
+  silently on the first attempt.
+- One proof was found in 34 seconds of local hashing and accepted on-chain:
+  `mined` = 25,000 SWRM, level now 2.
+- `withdraw_fees` paid the accrued split and left nothing behind:
+  token balance 2.75 to 2.70 NEAR, factory +0.035 NEAR (pool 0.025 plus
+  protocol 0.01), creator +0.015 NEAR, `accrued_fees` back to `(0, 0, 0)`.
 
 ## Immutability check
 
-`near account list-keys swarm.swarmpad.testnet` and the same call for `genesis`
-return an empty table: those accounts have no access keys, so nobody can
-redeploy or upgrade them. The factory keeps one full-access key because it is
-the protocol account that uploads the token code for new projects.
+`near account list-keys swarm2.swarmpad.testnet` returns an empty table: the
+project account has no access keys, so nobody can redeploy or upgrade it. The
+factory keeps one full-access key because it is the protocol account that
+uploads the token code for new projects.
 
-## Bug found on the first attempts, and the fix
+## Projects and history
 
-- `demo.swarmpad.testnet` was never created. `launch` returned success because
-  promise results are not awaited, but the token account was absent.
-- `demo2.swarmpad.testnet` was created and then failed with
-  `LackBalanceForState` (deficit 1.78751 NEAR): the 0.5 NEAR floor did not cover
-  storing the 228 KB token wasm.
-- `set_token_code` trapped whenever a deposit was attached, because the method
-  was not `#[payable]`.
-
-Both are fixed on `main` (PR #3) and the fixed factory code is now deployed on
-`swarmpad.testnet`, keeping the existing registry. `launch_deposit()` returns
-2.58303 NEAR for the 228,303 byte token wasm, which is
-`storage_byte_cost * code_len + 0.3 NEAR`.
+- `genesis` and `swarm` run the earlier token build. Both had one proof mined
+  and both reached level 2.
+- `demo` and `demo2` are registry entries from before the deposit fix; neither
+  has a working token. The registry is append-only by design.
 
 ## Known state
 
-- Registry entries `demo` and `demo2` predate the fix and have no working token.
-  The registry is append-only by design, so they stay until a fresh factory.
 - `swarmpad.testnet` cannot be deleted while its state is large; the protocol
   refuses with "account whose state is large is temporarily banned".
-- Balances: factory 2.76 NEAR available (6.96 total, 4.21 locked for storage),
-  `swarm` token 0.760 NEAR available (3.05 total), ops account 5.00 NEAR.
+- Balances: factory 4.95 NEAR available (9.28 total, 4.33 locked for storage),
+  `swarm2` token 0.387 NEAR available (2.70 total), `swarmpad-ops` 5.00 NEAR,
+  `swarmpad-buf` 5.00 NEAR.
 
 ## Reproduce
 
@@ -82,7 +82,7 @@ near contract call-function as-transaction swarmpad.testnet set_token_code \
 
 near contract call-function as-transaction swarmpad.testnet launch \
   json-args "$LAUNCH_ARGS" \
-  prepaid-gas '300 Tgas' attached-deposit '2.58303 NEAR' \
+  prepaid-gas '300 Tgas' attached-deposit '2.60615 NEAR' \
   sign-as swarmpad.testnet network-config testnet sign-with-legacy-keychain send
 ```
 

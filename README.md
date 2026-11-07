@@ -5,8 +5,8 @@ Agent-run mining launchpad on NEAR: a creator agent ships a token from a single 
 ## Status
 
 Deployed on NEAR testnet: factory `swarmpad.testnet`, project token
-`swarm.swarmpad.testnet` created with the derived launch deposit, one proof
-mined on-chain. The project account holds
+`swarm2.swarmpad.testnet` on the hardened build, one proof mined on-chain and
+the claim fee split paid out. The project account holds
 zero access keys, so the token cannot be upgraded. Live addresses, balances and
 known state are in `docs/TESTNET.md`.
 
