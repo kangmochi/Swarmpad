@@ -74,14 +74,47 @@ not an idea; anything still open is listed at the end.
 - The contract keeps the pool share of the fee accrued so this can become
   automatic later; the cross-contract call to Ref is not in this release.
 
-## 7. Open questions
+## 7. Launch profiles
+
+The rules above are identical for every project: 30-bit base, 40 levels, 2.5%
+of supply per level, x1.10 per level, 50% threshold, 0.05 NEAR claim fee split
+50/30/20. A launch only chooses values that were always per-project parameters
+(supply, reward, cap, deadline). Two profiles are used in practice.
+
+### Production profile
+
+- Deadline: 30 days.
+- `reward_per_proof` = 0.05% of supply, so one level needs 50 proofs and 100%
+  needs 2000 proofs.
+- `epoch_cap` = 0.5% of supply per account per level (10 proofs), so at least
+  five accounts are needed to fill one level.
+- Work: 50% of supply is ~3.08e12 hashes, 100% is ~2.37e13 hashes. At a
+  combined 10 MH/s that is ~3.6 days to 50% and ~27.5 days to 100%, which fits
+  the 30-day deadline.
+
+### Demo profile
+
+- Deadline: 30 minutes.
+- `reward_per_proof` = 2.5% of supply, so one proof moves the ladder exactly
+  one level and 100% needs 40 proofs.
+- `epoch_cap` = 2.5% of supply per account per level, i.e. one proof per level
+  per account. Miners take turns instead of one account sweeping a level.
+- Work: 50% of supply is ~6.15e10 hashes. At ~34 MH/s (about 8 cores) that is
+  ~30 minutes, so judges can watch the ladder move during a session. Reaching
+  100% needs ~4 hours, which the demo does not attempt.
+
+The demo profile changes no rule and no difficulty: the target, the 40 levels
+and the x1.10 curve are byte-for-byte the same as production. It only makes the
+reward coarse enough to show progress live. Nothing about the profile is
+hidden: the factory records the launch arguments on-chain and the token exposes
+them through its view methods.
+
+## 8. Open questions
 
 These block a testnet launch, not the scaffold:
 
-1. `reward_per_proof` and `epoch_cap` values for the demo project. They set how
-   fast 50% is reachable within 30 days.
-2. Exact `.md` schema (fields the agent endpoint maps to launch arguments).
-3. Whether the factory deletes its access key on the new account after init.
+1. Exact `.md` schema (fields the agent endpoint maps to launch arguments).
+2. Whether the factory deletes its access key on the new account after init.
    The scaffold does not claim immutability is enforced until this is verified
    against testnet.
-4. Launch deposit floor (`MIN_LAUNCH_DEPOSIT`), currently 0.5 NEAR.
+3. Launch deposit floor (`MIN_LAUNCH_DEPOSIT`), currently 0.5 NEAR.
