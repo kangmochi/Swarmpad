@@ -207,7 +207,7 @@ export function Launch() {
       <div className="launch__help">
         <Mascot mood="idle" size={120} decorative />
         <div>
-          <h3>Only the fields above become arguments.</h3>
+          <h2>Only the fields above become arguments.</h2>
           <p>
             Body text stays off-chain and is never parsed by the contract. The hash covers the
             whole file, so anyone can check that the project you read is the project that

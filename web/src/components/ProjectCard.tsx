@@ -25,7 +25,7 @@ export function ProjectCard({ project, now }: { project: ProjectView; now: numbe
       </div>
 
       <div className="projcard__title">
-        <h3>{name}</h3>
+        <h2>{name}</h2>
         {meta ? <span className="projcard__symbol">{meta.symbol}</span> : null}
       </div>
 

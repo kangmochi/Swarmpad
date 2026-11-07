@@ -980,6 +980,7 @@ main {
 }
 
 .proof-grid--page {
+  min-height: 340px;
   margin-top: var(--space-6);
 }
 
@@ -1026,7 +1027,7 @@ main {
   flex-wrap: wrap;
 }
 
-.projcard__title h3 {
+.projcard__title h2 {
   font-size: 24px;
   letter-spacing: -0.02em;
 }
@@ -1253,6 +1254,14 @@ main {
   margin-bottom: var(--space-4);
 }
 
+.console__skeleton {
+  min-height: 420px;
+  margin-top: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(240, 235, 214, 0.04), rgba(240, 235, 214, 0.01));
+}
+
 .console__head {
   display: flex;
   flex-wrap: wrap;
@@ -1352,8 +1361,8 @@ main {
   margin-bottom: var(--space-4);
 }
 
-.mining h3,
-.miners h3,
+.mining h2,
+.miners h2,
 .feeside h3 {
   font-size: 18px;
   letter-spacing: -0.015em;
@@ -1652,7 +1661,7 @@ main {
   flex: none;
 }
 
-.launch__help h3 {
+.launch__help h2 {
   font-size: 20px;
   margin-bottom: 6px;
 }
@@ -1675,6 +1684,12 @@ main {
 .doc h2 {
   font-size: clamp(24px, 3vw, 34px);
   margin-bottom: var(--space-3);
+}
+
+.doc a,
+.doclist a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .doc h3 {
@@ -1717,6 +1732,8 @@ main {
 
 .doc__foot a {
   color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .code {

@@ -109,8 +109,21 @@ export function ProjectDetail() {
 
   if (!view) {
     return (
-      <section className="page">
-        <p className="notice">Reading {slug} from chain…</p>
+      <section className="page console">
+        <Link to="/projects" className="console__back mono-label">
+          ← registry
+        </Link>
+        <header className="console__head">
+          <div className="console__title">
+            <Mascot mood="idle" size={96} className="console__mascot" decorative />
+            <div>
+              <p className="mono-label">{slug}</p>
+              <h1>{slug}</h1>
+              <p className="notice">Reading from chain…</p>
+            </div>
+          </div>
+        </header>
+        <div className="console__skeleton" aria-hidden="true" />
       </section>
     );
   }
@@ -281,7 +294,7 @@ export function ProjectDetail() {
             <div className="miners__head">
               <div>
                 <p className="mono-label">Recent claims</p>
-                <h3>Who called mine()</h3>
+                <h2>Who called mine()</h2>
               </div>
               <button type="button" className="linkish" onClick={miners.reload}>
                 refresh

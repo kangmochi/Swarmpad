@@ -68,7 +68,7 @@ export function MinePanel({
       <div className="mining__head">
         <div>
           <p className="mono-label">Proof search</p>
-          <h3>Find a preimage under the level target</h3>
+          <h2>Find a preimage under the level target</h2>
         </div>
         <div className="mining__head-right">
           <span className="mining__level mono-label">level {token.level} / 40</span>
