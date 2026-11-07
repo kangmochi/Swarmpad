@@ -109,3 +109,23 @@ without it. Deployed on 7 November 2026:
 - `ft_metadata` on `swarm3` returns `{"name":"Swarm Three","symbol":"SWRM",
   "decimals":18}`; the older tokens still do not answer it, and the web app
   falls back to the slug for those
+
+## Mining from the CLI
+
+`tools/miner` is a Node 24 script that reads the live target, searches for a
+preimage below it with one worker per core, then signs `mine(preimage)` and
+re-reads `mined` and `level`.
+
+```bash
+cd tools/miner && npm ci
+node mine.mjs --project swarm3 --account agentmine-1107.testnet
+node mine.mjs --project swarm3 --dry-run          # search only
+```
+
+First accepted proof on `swarm3`, mined 7 November 2026:
+
+- tx `Hrwid88dAgQNftvYdh4eXuDpJ9VDt4pVJajf9f4Qryhf`, success
+- preimage `iVSjps3IhzoAAAAAAedl4g==`, digest `000000008c3000c774e88f1f1914ca17`
+- 161.34M hashes in 18s with five threads, i.e. about 9 MH/s
+- result: `mined` 25,000 SWRM, level 2, fee 0.05 NEAR paid from
+  `agentmine-1107.testnet`
