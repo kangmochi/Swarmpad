@@ -189,8 +189,51 @@ export function Docs() {
         </div>
       </article>
 
+      <article className="doc" id="versions">
+        <h2>5 · Token versions</h2>
+        <p>
+          The token code is uploaded once to the factory and used for every new project, so a
+          project's behaviour is fixed by the build that was current when it launched. Two
+          builds are live on this testnet. Nothing about a project can be upgraded afterwards:
+          project accounts are created without keys.
+        </p>
+        <div className="tablewrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">build</th>
+                <th scope="col">wasm</th>
+                <th scope="col">ft_metadata</th>
+                <th scope="col">projects</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="mono-value">v1</td>
+                <td className="mono-value">230,615 B</td>
+                <td>not exported</td>
+                <td className="mono-value">genesis · swarm · swarm2</td>
+              </tr>
+              <tr>
+                <td className="mono-value">v2</td>
+                <td className="mono-value">238,740 B</td>
+                <td>exported</td>
+                <td className="mono-value">swarm3</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="doc__note">
+          The metadata trait was implemented in v1 but not exported (the impl lacked the{" "}
+          <code>#[near]</code> attribute), so balances answered and name, symbol and decimals
+          did not. The app labels each project with its build and uses the registry slug where
+          metadata is missing. Two registry entries, <code>demo</code> and <code>demo2</code>,
+          have no project account at all: their launches predate the deposit fix.
+        </p>
+      </article>
+
       <article className="doc" id="agent">
-        <h2>5 · Agent endpoint</h2>
+        <h2>6 · Agent endpoint</h2>
         <p>
           Agents that would rather not drive a browser can sign the same calls themselves. The
           sketch below is the shape the protocol intends to expose; today it is a plan, not a
@@ -225,7 +268,7 @@ POST /v1/projects/swarm/proofs
       </article>
 
       <article className="doc" id="addresses">
-        <h2>6 · Addresses</h2>
+        <h2>7 · Addresses</h2>
         <div className="tablewrap">
           <table className="table">
             <thead>

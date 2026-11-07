@@ -13,6 +13,13 @@ export interface ProjectRecord {
   config_hash: string;
 }
 
+/**
+ * Which token build a project runs. v1 answers balances but not `ft_metadata`;
+ * v2 answers both. `none` means the registry entry has no project account at
+ * all (a launch from before the deposit fix), `unknown` means the read failed.
+ */
+export type TokenVersion = "v2" | "v1" | "none" | "unknown";
+
 export interface TokenMeta {
   name: string;
   symbol: string;
@@ -50,6 +57,7 @@ export interface ProjectView {
   level: number;
   progress: number;
   meta?: TokenMeta | null;
+  version: TokenVersion;
 }
 
 export interface LaunchArgs {

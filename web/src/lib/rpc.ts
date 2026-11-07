@@ -48,7 +48,20 @@ export class RpcError extends Error {
 
 interface QueryResponse {
   result?: { result: number[] };
-  error?: { message?: string; code?: number; cause?: { info?: { error_message?: string } } };
+  error?: {
+    message?: string;
+    code?: number;
+    data?: unknown;
+    cause?: { name?: string; info?: { error_message?: string; requested_account_id?: string } };
+  };
+}
+
+/** A registry entry whose project account was never created. */
+export function isMissingAccount(error: unknown): boolean {
+  if (!(error instanceof RpcError)) {
+    return false;
+  }
+  return /does not exist|UNKNOWN_ACCOUNT/i.test(error.message);
 }
 
 function decode(bytes: number[]): unknown {
@@ -142,7 +155,9 @@ async function post(
       cool(endpoint);
       throw new RpcError("Node is rate limiting", method, account, true);
     }
-    const reason = body.error?.cause?.info?.error_message ?? body.error?.message ?? "no result";
+    const data = typeof body.error?.data === "string" ? body.error.data : undefined;
+    const reason =
+      body.error?.cause?.info?.error_message ?? data ?? body.error?.message ?? "no result";
     throw new RpcError(reason, method, account, false);
   }
 

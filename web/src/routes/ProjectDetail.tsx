@@ -5,7 +5,7 @@ import { LevelLadder } from "../components/LevelLadder";
 import { Mascot } from "../components/Mascot";
 import { MinePanel } from "../components/MinePanel";
 import { PillButton, PillExternal } from "../components/Pill";
-import { StatusChip } from "../components/StatusChip";
+import { StatusChip, VersionChip } from "../components/StatusChip";
 import { CLAIM_FEE, DISPLAY_DECIMALS, DOCS_LINKS, FACTORY_ID } from "../lib/config";
 import { fetchProject } from "../lib/factory";
 import {
@@ -135,7 +135,10 @@ export function ProjectDetail() {
             </p>
             <h1>{meta?.name ?? slug}</h1>
             <div className="console__meta">
-              <StatusChip status={view.status} unknown={token === null} />
+              <VersionChip version={view.version} />
+              {view.version === "none" ? null : (
+                <StatusChip status={view.status} unknown={view.version === "unknown"} />
+              )}
               <span className="mono-label">level {view.level} / 40</span>
               <span className="mono-label">{formatBps(view.minedBps)} mined</span>
               <span className="mono-label">
@@ -172,10 +175,27 @@ export function ProjectDetail() {
 
       {message ? <p className="notice">{message}</p> : null}
 
-      {token === null ? (
+      {view.version === "v1" ? (
+        <p className="notice">
+          <strong>Token v1.</strong> This build never exported <code>ft_metadata</code>, so the
+          name and ticker come from the registry slug. Project accounts are created without
+          keys, so the code cannot be upgraded in place; every launch after the v2 upload gets
+          metadata instead.
+        </p>
+      ) : null}
+
+      {view.version === "none" ? (
         <p className="notice notice--error">
-          Registry entry without a readable token: {view.tokenError}. Launches from before the
-          deposit fix left entries like this; the registry is append-only by design.
+          <strong>No project account.</strong> The launch was recorded but the account behind
+          it does not exist: these entries predate the deposit fix, which forwarded the deploy
+          deposit before the callback recorded the project. The registry is append-only, so the
+          entry stays.
+        </p>
+      ) : null}
+
+      {view.version === "unknown" ? (
+        <p className="notice notice--error">
+          The token could not be read: {view.tokenError}.
         </p>
       ) : null}
 
