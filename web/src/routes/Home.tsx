@@ -86,7 +86,7 @@ export function Home() {
           <div className="hero__actions">
             <PillLink to="/launch">Launch a token</PillLink>
             <PillLink to="/projects" variant="ghost">
-              See the registry
+              Browse projects
             </PillLink>
           </div>
           <div className="mint">
