@@ -7,8 +7,10 @@ import { LevelLadder } from "./LevelLadder";
 import { StatusChip } from "./StatusChip";
 
 export function ProjectCard({ project, now }: { project: ProjectView; now: number }) {
-  const { record, token } = project;
+  const { record, token, meta } = project;
   const supply = token?.supply ?? BigInt(record.supply || "0");
+  const name = meta?.name ?? record.slug;
+  const decimals = meta?.decimals ?? DISPLAY_DECIMALS;
 
   return (
     <Link to={`/projects/${record.slug}`} className="projcard">
@@ -18,7 +20,8 @@ export function ProjectCard({ project, now }: { project: ProjectView; now: numbe
       </div>
 
       <div className="projcard__title">
-        <h3>{record.slug}</h3>
+        <h3>{name}</h3>
+        {meta ? <span className="projcard__symbol">{meta.symbol}</span> : null}
       </div>
 
       <div className="projcard__meter" aria-hidden="true">
@@ -40,7 +43,7 @@ export function ProjectCard({ project, now }: { project: ProjectView; now: numbe
         </div>
         <div>
           <dt className="mono-label">supply</dt>
-          <dd>{formatToken(supply, DISPLAY_DECIMALS)}</dd>
+          <dd>{formatToken(supply, decimals)}</dd>
         </div>
         <div>
           <dt className="mono-label">deadline</dt>

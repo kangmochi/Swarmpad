@@ -162,6 +162,11 @@ export function Docs() {
         </div>
 
         <h3>Project token · &lt;slug&gt;.{FACTORY_ID}</h3>
+        <p className="doc__note">
+          Tokens deployed on the v2 code export <code>ft_metadata</code>. Projects launched
+          before it answer "Method not found", so the app shows the slug and assumes 18
+          decimals for those; the page never invents a name.
+        </p>
         <div className="tablewrap">
           <table className="table">
             <thead>

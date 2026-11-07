@@ -13,6 +13,12 @@ export interface ProjectRecord {
   config_hash: string;
 }
 
+export interface TokenMeta {
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
 export interface TokenState {
   account: string;
   status: ProjectStatus;
@@ -29,6 +35,8 @@ export interface TokenState {
   claimFee: bigint;
   accrued: { pool: bigint; creator: bigint; protocol: bigint };
   poolAccount: string;
+  /** Null on projects deployed before the token exported `ft_metadata`. */
+  meta: TokenMeta | null;
 }
 
 /** A project joined with whatever its token reports (or a graceful fallback). */
@@ -41,6 +49,7 @@ export interface ProjectView {
   minedBps: number;
   level: number;
   progress: number;
+  meta?: TokenMeta | null;
 }
 
 export interface LaunchArgs {

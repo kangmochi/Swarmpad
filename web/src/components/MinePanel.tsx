@@ -38,6 +38,8 @@ export function MinePanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token.account]);
 
+  const decimals = token.meta?.decimals ?? DISPLAY_DECIMALS;
+  const unit = token.meta?.symbol ?? "";
   const expected = expectedHashes(token.target);
   const rate = miner.hashesPerSecond;
   const eta = rate > 0 ? expected / rate : 0;
@@ -93,9 +95,9 @@ export function MinePanel({
       </dl>
 
       <p className="mining__note">
-        One proof unlocks {formatToken(token.rewardPerProof, DISPLAY_DECIMALS)} tokens. The
+        One proof unlocks {formatToken(token.rewardPerProof, decimals)} {unit || "tokens"}. The
         claim costs {formatNear(CLAIM_FEE)} and the cap is{" "}
-        {formatToken(token.epochCap, DISPLAY_DECIMALS)} per account per level.
+        {formatToken(token.epochCap, decimals)} {unit ? unit : "tokens"} per account per level.
       </p>
 
       <div className="mining__actions">

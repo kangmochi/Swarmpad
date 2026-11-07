@@ -110,7 +110,7 @@ export function LivePanel({
                 <p>
                   <span className="mono-label">reward</span>
                   {lead.token
-                    ? formatToken(lead.token.rewardPerProof, DISPLAY_DECIMALS)
+                    ? formatToken(lead.token.rewardPerProof, lead.token.meta?.decimals ?? DISPLAY_DECIMALS)
                     : "—"}
                 </p>
               </div>
