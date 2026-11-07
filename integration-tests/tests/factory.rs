@@ -102,6 +102,14 @@ async fn factory_deploys_a_token_and_records_it() -> anyhow::Result<()> {
     assert_eq!(token_supply, supply);
     assert_eq!(level, 1);
 
+    // The metadata trait must be exported, not just implemented: the first
+    // token version shipped without `#[near]` on the impl, so wallets and the
+    // web app could read balances but not the name, symbol or decimals.
+    let metadata: serde_json::Value = caller.view(&token_account, "ft_metadata").await?.json()?;
+    assert_eq!(metadata["name"], "Swarm Sandbox");
+    assert_eq!(metadata["symbol"], "SWRM");
+    assert_eq!(metadata["decimals"], 18);
+
     // A token account is created without keys: nothing can upgrade it.
     let keys = worker.view_access_keys(&token_account).await?;
     assert!(keys.is_empty(), "project account must have no access keys");

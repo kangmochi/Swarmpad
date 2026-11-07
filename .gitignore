@@ -8,3 +8,5 @@ Cargo.lock.bak
 web/node_modules
 web/dist
 web/.vite
+.scratch/
+token_code.json
