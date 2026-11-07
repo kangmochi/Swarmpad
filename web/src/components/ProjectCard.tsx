@@ -29,14 +29,6 @@ export function ProjectCard({ project, now }: { project: ProjectView; now: numbe
         {meta ? <span className="projcard__symbol">{meta.symbol}</span> : null}
       </div>
 
-      <div className="projcard__meter" aria-hidden="true">
-        <span
-          style={{
-            width: `${Math.max(project.minedBps / 100, project.minedBps > 0 ? 1 : 0)}%`,
-          }}
-        />
-      </div>
-
       <dl className="projcard__stats">
         <div>
           <dt className="mono-label">mined</dt>

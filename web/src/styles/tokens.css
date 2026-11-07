@@ -8,27 +8,27 @@
 
 :root {
   /* Surfaces */
-  --bg: #080a18;
-  --bg-ink: #05060f;
-  --surface: #181030;
-  --surface-2: #221741;
-  --stroke: rgba(222, 214, 198, 0.12);
-  --stroke-strong: rgba(222, 214, 198, 0.24);
+  --bg: #140c2b;          /* ink violet */
+  --bg-ink: #0b0f1a;     /* screen black */
+  --surface: #1e1340;
+  --surface-2: #2a1b4d;
+  --stroke: #3a2a66;
+  --stroke-strong: #4a3678;
 
   /* Text */
-  --text: #ded6c6;
-  --muted: rgba(222, 214, 198, 0.74);
-  --faint: rgba(222, 214, 198, 0.6);
-  --ink-on-light: #0d1020;
+  --text: #f1ebd6;          /* crt cream */
+  --muted: #a79fc4;        /* muted lilac */
+  --faint: rgba(167, 159, 196, 0.95);
+  --ink-on-light: #0b0f1a;
 
   /* Accents taken from the mascot art */
-  --accent: #3cd8e4;        /* cyan: primary action, links, focus */
-  --accent-2: #fc4ea2;      /* magenta: secondary highlight, badges */
-  --accent-3: #6cfc9c;      /* mint: success, valid project */
-  --accent-ink: #05131a;    /* text on cyan */
-  --accent-soft: rgba(60, 216, 228, 0.12);
-  --danger: #e44e48;        /* failed project, rejected proof */
-  --warn: #ffc857;
+  --accent: #3dd9e8;        /* neon cyan: primary action, links, focus */
+  --accent-2: #ff4fa3;      /* hot pink: progress, badges */
+  --accent-3: #6dff9c;      /* phosphor green: live, success */
+  --accent-ink: #0b0f1a;    /* text on cyan */
+  --accent-soft: rgba(61, 217, 232, 0.12);
+  --danger: #ff4fa3;        /* failed project, rejected proof */
+  --warn: #ffb000;
 
   /* Type */
   --font-display: "Outfit Variable", "Outfit", "Segoe UI", system-ui, sans-serif;
