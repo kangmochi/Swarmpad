@@ -129,3 +129,13 @@ First accepted proof on `swarm3`, mined 7 November 2026:
 - 161.34M hashes in 18s with five threads, i.e. about 9 MH/s
 - result: `mined` 25,000 SWRM, level 2, fee 0.05 NEAR paid from
   `agentmine-1107.testnet`
+
+Second proof, level 2 (target 2^97, 1.10x heavier):
+
+- tx `3xzQ8SxMgPwgkudN1sNEu15EwyWLmdQa6yN4BXxDT5N2`, success
+- preimage `+x7lAF8y6TQAAAAAJmcF1w==`, digest `00000002e355fdf24a00ea0c6e108d86`
+- 3,222.44M hashes in 6m 19s with five threads, about 8.5 MH/s
+- result: `mined` 50,000 SWRM (5%), level 3
+
+The ladder is now at 5% of supply with two accepted proofs; the deadline is the
+same 2 hour window, so the demo can be replayed from a terminal.
