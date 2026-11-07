@@ -1,0 +1,97 @@
+/* Swarmpad design tokens.
+ *
+ * Palette sampled from the mascot art (neon pixel robot): deep navy screen,
+ * cream shell, cyan / magenta / mint accents. Layout and type scale come from
+ * the reference blueprint in REFERENCE.md. Every component reads these
+ * variables, so a palette change happens here only.
+ */
+
+:root {
+  /* Surfaces */
+  --bg: #080a18;
+  --bg-ink: #05060f;
+  --surface: #181030;
+  --surface-2: #221741;
+  --stroke: rgba(222, 214, 198, 0.12);
+  --stroke-strong: rgba(222, 214, 198, 0.24);
+
+  /* Text */
+  --text: #ded6c6;
+  --muted: rgba(222, 214, 198, 0.62);
+  --faint: rgba(222, 214, 198, 0.42);
+  --ink-on-light: #0d1020;
+
+  /* Accents taken from the mascot art */
+  --accent: #3cd8e4;        /* cyan: primary action, links, focus */
+  --accent-2: #fc4ea2;      /* magenta: secondary highlight, badges */
+  --accent-3: #6cfc9c;      /* mint: success, valid project */
+  --accent-ink: #05131a;    /* text on cyan */
+  --accent-soft: rgba(60, 216, 228, 0.12);
+  --danger: #e44e48;        /* failed project, rejected proof */
+  --warn: #ffc857;
+
+  /* Type */
+  --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
+  --font-ui: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 19px;
+  --text-xl: 26px;
+  --text-2xl: 40px;
+  --text-display: clamp(48px, 8vw, 104px);
+
+  --leading-tight: 0.92;
+  --leading-body: 1.6;
+  --tracking-display: -0.03em;
+
+  /* Space */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 144px;
+
+  /* Shape */
+  --radius-pill: 999px;
+  --radius-tag: 2px;
+  --radius-panel: 32px;
+  --radius-panel-lg: 40px;
+  --radius-card: 24px;
+
+  /* Layout */
+  --container: 1440px;
+  --gutter: 24px;
+  --gutter-lg: 48px;
+  --header-h: 64px;
+  --header-h-lg: 96px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur: 220ms;
+  --dur-slow: 420ms;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: var(--gutter-lg);
+    --header-h: var(--header-h-lg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+    --dur-slow: 0ms;
+  }
+}
