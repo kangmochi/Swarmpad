@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-import { route } from "./_lib/handlers.js";
+import { route } from "../_lib/handlers.js";
 
 /**
  * One entry point for /v1/*. The rewrite in vercel.json puts the rest of the

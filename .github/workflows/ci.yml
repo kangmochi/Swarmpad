@@ -62,6 +62,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Generated API is current
+        run: npm run api:check
+
       - name: Install the test browser
         run: npx playwright install --with-deps chromium
 
