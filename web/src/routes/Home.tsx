@@ -63,7 +63,15 @@ export function Home() {
 
   const views = registry.data?.views ?? [];
   const count = registry.data?.count ?? 0;
-  const lead = [...views].sort((a, b) => b.minedBps - a.minedBps)[0] ?? null;
+  // The bar is about work in progress. A closed project keeps its share, but it
+  // is no longer minting, so only fall back to one when nothing is open.
+  const open = views.filter(
+    (view) => view.status === "Mining" && view.record.deadline_ns / 1e6 > now,
+  );
+  const lead = open.length
+    ? [...open].sort((a, b) => b.minedBps - a.minedBps)[0]
+    : (views.at(-1) ?? null);
+  const leadLabel = open.length > 0 ? "minting progress" : "final result";
 
   return (
     <>
@@ -86,13 +94,13 @@ export function Home() {
           <div className="hero__actions">
             <PillLink to="/launch">Launch a token</PillLink>
             <PillLink to="/projects" variant="ghost">
-              See the registry
+              Browse projects
             </PillLink>
           </div>
           <div className="mint">
             <div className="mint__head">
               <span className="mono-label">
-                minting progress · {lead ? lead.record.slug : "registry"}
+                {leadLabel} · {lead ? lead.record.slug : "registry"}
               </span>
               <span className="mint__pct">
                 {formatBps(lead ? lead.minedBps : 0)}
