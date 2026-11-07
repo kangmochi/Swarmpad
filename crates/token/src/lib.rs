@@ -332,6 +332,11 @@ impl Token {
     }
 }
 
+/// `#[near]` is what exports the method. Without it the trait is implemented
+/// but `ft_metadata` is not callable on chain, which is how the first token
+/// version shipped: wallets and the web app could read balances but not the
+/// name, symbol or decimals.
+#[near]
 impl FungibleTokenMetadataProvider for Token {
     fn ft_metadata(&self) -> FungibleTokenMetadata {
         self.metadata.clone()

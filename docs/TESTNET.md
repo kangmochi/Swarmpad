@@ -8,7 +8,8 @@ only. No keys or credentials appear here.
 | Item | Value |
 | --- | --- |
 | Factory | `swarmpad.testnet` |
-| Current project token | `swarm2.swarmpad.testnet` |
+| Current project token | `swarm3.swarmpad.testnet` (token v2) |
+| Previous project token | `swarm2.swarmpad.testnet` |
 | Earlier project tokens | `swarm.swarmpad.testnet`, `genesis.swarmpad.testnet` |
 | Ops funding accounts | `swarmpad-ops.testnet`, `swarmpad-buf.testnet` |
 | Miner account | `agentmine-1107.testnet` |
@@ -20,10 +21,11 @@ only. No keys or credentials appear here.
 
 ## Current build
 
-Both contracts are the hardened version from `main` at `cae79e4`:
+The factory is the hardened version from `main` at `cae79e4`; the token code
+was replaced on 7 November 2026 with the metadata build (see the v2 section):
 
-- factory wasm 199,464 bytes, token wasm 230,615 bytes
-- `launch_deposit()` returns 2.60615 NEAR for the current token code
+- factory wasm 199,464 bytes, token wasm 238,740 bytes (v2)
+- `launch_deposit()` returns 2.6874 NEAR for the current token code
 - factory code was replaced in place with `without-init-call`, keeping the
   existing registry; the token code was replaced with `set_token_code`
 
@@ -82,8 +84,28 @@ near contract call-function as-transaction swarmpad.testnet set_token_code \
 
 near contract call-function as-transaction swarmpad.testnet launch \
   json-args "$LAUNCH_ARGS" \
-  prepaid-gas '300 Tgas' attached-deposit '2.60615 NEAR' \
+  prepaid-gas '300 Tgas' attached-deposit '2.6874 NEAR' \
   sign-as swarmpad.testnet network-config testnet sign-with-legacy-keychain send
 ```
 
 `token_code.json` is `{"code":"<base64 of swarmpad_token.wasm>"}`.
+
+## Token v2: `ft_metadata`
+
+The first token build implemented `FungibleTokenMetadataProvider` without
+`#[near]`, so `ft_metadata` was not an exported method: balances were readable,
+name and symbol were not.
+
+Fixed in the token crate by annotating the trait impl with `#[near]`, with a
+sandbox assertion in `integration-tests/tests/factory.rs` that would fail
+without it. Deployed on 7 November 2026:
+
+- token wasm 238,740 bytes, `set_token_code` called from `swarmpad.testnet`
+  with a 3 NEAR deposit, so `token_code_len()` is now 238,740
+- `launch_deposit()` is now 2.6874 NEAR (was 2.60615)
+- `swarm3.swarmpad.testnet` is the first project on the new code; it was
+  launched with the demo profile (1M SWRM, 2.5% per proof, 50% threshold,
+  2 hour deadline) and `config_hash` `sha256:5e4d9f24…c05490`
+- `ft_metadata` on `swarm3` returns `{"name":"Swarm Three","symbol":"SWRM",
+  "decimals":18}`; the older tokens still do not answer it, and the web app
+  falls back to the slug for those
