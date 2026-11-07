@@ -147,13 +147,15 @@ export function Home() {
         <div className="hero__art">
           <div className="hero__ring" aria-hidden="true" />
           <Mascot size={420} className="hero__mascot" />
-          <div className="hero__tag hero__tag--a">
-            <span className="mono-label">level {lead ? lead.level : 1} / 40</span>
-            <strong>{lead ? formatBps(lead.minedBps) : "0%"} mined</strong>
-          </div>
-          <div className="hero__tag hero__tag--b">
-            <span className="mono-label">projects on chain</span>
-            <strong>{formatInt(count)}</strong>
+          <div className="hero__tags">
+            <div className="hero__tag">
+              <span className="mono-label">level {lead ? lead.level : 1} / 40</span>
+              <strong>{lead ? formatBps(lead.minedBps) : "0%"} mined</strong>
+            </div>
+            <div className="hero__tag">
+              <span className="mono-label">projects on chain</span>
+              <strong>{formatInt(count)}</strong>
+            </div>
           </div>
         </div>
       </section>
