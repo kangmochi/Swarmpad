@@ -23,7 +23,7 @@ test("landing page shows the hero and the minting bar", async ({ page }) => {
   await expect(page.locator("h1")).toContainText("Tokens that exist");
   await expect(page.locator("h1 .accent")).toHaveText("work");
   await expect(page.locator(".mint__track")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Launch a token" })).toBeVisible();
+  await expect(page.locator(".hero").getByRole("link", { name: "Launch a token" })).toBeVisible();
 });
 
 test("registry renders its heading and either a notice, cards or an empty state", async ({ page }) => {
