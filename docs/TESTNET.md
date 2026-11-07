@@ -139,3 +139,20 @@ Second proof, level 2 (target 2^97, 1.10x heavier):
 
 The ladder is now at 5% of supply with two accepted proofs; the deadline is the
 same 2 hour window, so the demo can be replayed from a terminal.
+
+## Outcome: `swarm3` finalized as Failed
+
+The 2 hour window closed with 5% of supply mined, so `finalize` on 7 November
+2026 set the project to `Failed`:
+
+- mined 50,000 SWRM (two accepted proofs), threshold 50%
+- `burned` 950,000 SWRM, `remaining` still reports 950,000: `remaining()` is
+  supply minus mined, while `burned()` is the record that the amount can never
+  be minted
+- emission is closed; tokens already mined stay with their miners
+- the call costs gas only, no claim fee
+
+Both outcomes are covered by sandbox tests in `integration-tests/tests/finalize.rs`,
+which need no testnet funds: one project above the threshold finalizes `Valid`
+with the remainder burned, one below finalizes `Failed` and rejects a valid
+proof after the deadline.
