@@ -34,6 +34,19 @@ levels, and the curve is x1.10 for every launch. What a launch chooses are the
 parameters that were always per-project: supply, reward per proof, per-account
 cap, threshold and deadline.
 
+## Market (phase 2)
+
+There is no market yet, and the contracts do not call a DEX. The plan recorded in
+`docs/SPEC.md` §6 is a permissionless pool on a NEAR DEX (Rhea, the venue that
+grew out of Ref Finance): the project token paired with wNEAR, created by the
+creator or the operator once the threshold is reached, with the LP tokens burned.
+
+What exists today is the accounting for it: 50% of every claim fee is accrued in
+the token for the pool account, so a pool can be seeded later without the
+protocol moving funds after the fact. Until a pool exists that account is the
+protocol account, which keeps the share from being stranded. Treat any mention of
+trading, liquidity or price as roadmap, not as a deployed feature.
+
 ## Launch profiles
 
 Two parameter sets are used, with identical rules and identical difficulty:
