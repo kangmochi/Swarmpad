@@ -58,8 +58,12 @@ animation only: slow bob, antenna sway, small tilt on hover; no GIF.
 
 ## Palette
 
-Cyan `#3CD8E4` primary, magenta `#FC4EA2` secondary, mint `#6CFC9C` success,
-cream `#DED6C6` text on navy `#080A18`. All through CSS variables.
+Ink violet `#140C2B` page, surface `#1E1340`, raised `#2A1B4D`, border
+`#3A2A66`. Text `#F1EBD6` (CRT cream), muted `#A79FC4` (lilac). Neon cyan
+`#3DD9E8` for primary actions and links, hot pink `#FF4FA3` for progress and
+badges, phosphor green `#6DFF9C` for live/success, amber `#FFB000` for warnings,
+screen black `#0B0F1A` for code and terminal surfaces. All through CSS
+variables in `tokens.css`.
 
 ## Acceptance for the first pass
 

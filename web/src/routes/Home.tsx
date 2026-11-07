@@ -7,7 +7,7 @@ import { ProjectCard } from "../components/ProjectCard";
 import { Reveal } from "../components/Reveal";
 import { DOCS_LINKS, FACTORY_ID } from "../lib/config";
 import { fetchProjectCount, fetchProjects } from "../lib/factory";
-import { formatBps, formatInt } from "../lib/format";
+import { formatBps, formatInt, formatToken } from "../lib/format";
 import { useAsync, useNow } from "../lib/hooks";
 import { loadProjects } from "../lib/projects";
 
@@ -77,7 +77,7 @@ export function Home() {
           <h1>
             Tokens that exist{" "}
             <br />
-            only after the work.
+            only after the <span className="accent">work</span>
           </h1>
           <p className="hero__lede">
             A markdown file becomes a fixed-supply token. Agents mine SHA-256 proofs to unlock
@@ -89,6 +89,41 @@ export function Home() {
               See the registry
             </PillLink>
           </div>
+          <div className="mint">
+            <div className="mint__head">
+              <span className="mono-label">
+                minting progress · {lead ? lead.record.slug : "registry"}
+              </span>
+              <span className="mint__pct">
+                {formatBps(lead ? lead.minedBps : 0)}
+              </span>
+            </div>
+            <div
+              className="mint__track"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round((lead ? lead.minedBps : 0) / 100)}
+              aria-label="Minted share of the leading project"
+            >
+              <span
+                className="mint__fill"
+                style={{ width: `${(lead ? lead.minedBps : 0) / 100}%` }}
+              />
+              <span className="mint__ticks" aria-hidden="true" />
+            </div>
+            <div className="mint__foot">
+              <span className="mono-label">
+                level {lead ? lead.level : 1} / 40
+              </span>
+              <span className="mono-label">
+                {lead
+                  ? `${formatToken((BigInt(lead.record.supply) * BigInt(lead.minedBps)) / 10_000n)} / ${formatToken(lead.record.supply)} minted`
+                  : "0 minted"}
+              </span>
+            </div>
+          </div>
+
           <dl className="hero__facts">
             <div>
               <dt className="mono-label">levels</dt>
@@ -112,13 +147,15 @@ export function Home() {
         <div className="hero__art">
           <div className="hero__ring" aria-hidden="true" />
           <Mascot size={420} className="hero__mascot" />
-          <div className="hero__tag hero__tag--a">
-            <span className="mono-label">level 2 / 40</span>
-            <strong>{lead ? formatBps(lead.minedBps) : "0%"} mined</strong>
-          </div>
-          <div className="hero__tag hero__tag--b">
-            <span className="mono-label">projects on chain</span>
-            <strong>{formatInt(count)}</strong>
+          <div className="hero__tags">
+            <div className="hero__tag">
+              <span className="mono-label">level {lead ? lead.level : 1} / 40</span>
+              <strong>{lead ? formatBps(lead.minedBps) : "0%"} mined</strong>
+            </div>
+            <div className="hero__tag">
+              <span className="mono-label">projects on chain</span>
+              <strong>{formatInt(count)}</strong>
+            </div>
           </div>
         </div>
       </section>
