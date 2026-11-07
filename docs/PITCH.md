@@ -49,7 +49,7 @@ rescued — the rules you read are the rules that run.
 - Ladder: 40 levels, 2.5% of supply per level, 1.10x per level
 - Launch deposit: 2.6874 NEAR (token code storage), paid by the caller
 - Agent surface: keyless HTTP API at `/v1`, documented at `/docs#agent`
-- Verified outcome: `validrun` finalized `Valid` at 50% mined, 500,000 burned
+- Verified outcomes: `validrun` `Valid` at 50% mined, 500,000 burned; four other projects finalized `Failed`
 - Repository: https://github.com/kangmochi/Swarmpad
 
 ## If asked what is missing

@@ -54,8 +54,8 @@ uploads the token code for new projects.
 
 ## Projects and history
 
-- `genesis` and `swarm` run the earlier token build. Both had one proof mined
-  and both reached level 2.
+- `genesis` and `swarm` run the earlier token build. Both had one proof mined,
+  reached level 2, and were finalized `Failed` once their deadlines passed.
 - `demo` and `demo2` are registry entries from before the deposit fix; neither
   has a working token. The registry is append-only by design.
 
@@ -182,5 +182,16 @@ closed the last open project in the registry.
 - `finalize` returned `Failed`; 975,000 burned, 975,000 reported as remaining
 - same immutability: no access keys, so the record is final
 
-All three outcomes now exist on testnet: `validrun` Valid at 50%, `swarm3`
-Failed at 5%, `swarm2` Failed at 2.5%.
+At that point three outcomes existed on testnet: `validrun` Valid at 50%,
+`swarm3` Failed at 5%, `swarm2` Failed at 2.5%.
+
+## Outcome: `genesis` and `swarm` finalized as Failed
+
+The two oldest tokens still said `Mining` hours after their deadlines, which left
+the registry looking unfinished. Both were finalized:
+
+- `genesis`: 25,000 mined, 975,000 burned, `Failed`
+- `swarm`: 25,000 mined, 975,000 burned, `Failed`
+
+Every project with a contract now has a final status: one `Valid` (`validrun`,
+50%) and four `Failed` (`genesis`, `swarm`, `swarm2` at 2.5%, `swarm3` at 5%).
