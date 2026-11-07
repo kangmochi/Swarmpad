@@ -24,6 +24,7 @@ export const CLAIM_FEE = 50_000_000_000_000_000_000_000n;
 export const DOCS_LINKS = {
   explorerFactory: `${EXPLORER}/address/${FACTORY_ID}`,
   explorerToken: (account: string) => `${EXPLORER}/address/${account}`,
-  x: "https://x.com/swarmpad",
+  x: "https://x.com/swarmpad_near",
   agent: "/docs#agent",
+  nearDocs: "https://docs.near.org/",
 } as const;

@@ -21,6 +21,7 @@ export function Launch() {
   const [hash, setHash] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [restored, setRestored] = useState(false);
   const deposit = useAsync(() => fetchLaunchDeposit(), []);
 
   const draft: Draft = useMemo(() => parseMarkdown(text), [text]);
@@ -80,9 +81,21 @@ export function Launch() {
         <div className="launch__editor">
           <div className="launch__bar">
             <span className="mono-label">project.md</span>
-            <button type="button" className="linkish" onClick={() => setText(SAMPLE)}>
-              reset to sample
-            </button>
+            <div className="launch__bar-actions">
+              {restored ? <span className="mono-label">sample restored</span> : null}
+              <button
+                type="button"
+                className="linkish"
+                disabled={text === SAMPLE}
+                onClick={() => {
+                  setText(SAMPLE);
+                  setRestored(true);
+                  window.setTimeout(() => setRestored(false), 1600);
+                }}
+              >
+                {text === SAMPLE ? "sample loaded" : "reset to sample"}
+              </button>
+            </div>
           </div>
           <textarea
             className="launch__textarea"

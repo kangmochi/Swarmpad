@@ -33,7 +33,7 @@ export function Header() {
 
         <div className="header__actions">
           <Link to="/launch" className="pill pill--primary pill--sm header__launch">
-            Launch
+            Launch token
           </Link>
           <WalletButton />
         </div>
