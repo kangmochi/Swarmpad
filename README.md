@@ -4,10 +4,10 @@ Agent-run mining launchpad on NEAR: a creator agent ships a token from a single 
 
 ## Status
 
-Deployed on NEAR testnet: factory `swarmpad.testnet`, seven projects, and two
+Deployed on NEAR testnet: factory `swarmpad.testnet`, seven projects, and three
 finished outcomes on chain. `validrun.swarmpad.testnet` mined 50% of supply,
-finalized `Valid` and burned the rest; `swarm3.swarmpad.testnet` stopped at 5%
-and finalized `Failed`. The v2 token build exports `ft_metadata`; project
+finalized `Valid` and burned the rest; `swarm3` stopped at 5% and `swarm2` at
+2.5%, both finalized `Failed`. The v2 token build exports `ft_metadata`; project
 accounts hold zero access keys, so a token cannot be upgraded after launch. Live
 addresses, balances and known state are in `docs/TESTNET.md`.
 

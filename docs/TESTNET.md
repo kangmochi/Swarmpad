@@ -172,3 +172,15 @@ half the supply, which is the threshold.
 
 Both outcomes now exist on testnet: `swarm3` Failed at 5% mined, `validrun`
 Valid at 50% mined.
+
+## Outcome: `swarm2` finalized as Failed
+
+The first hardened build, left `Mining` after its deadline passed. Finalizing it
+closed the last open project in the registry.
+
+- one accepted proof: 2.5% of supply mined, level 2
+- `finalize` returned `Failed`; 975,000 burned, 975,000 reported as remaining
+- same immutability: no access keys, so the record is final
+
+All three outcomes now exist on testnet: `validrun` Valid at 50%, `swarm3`
+Failed at 5%, `swarm2` Failed at 2.5%.
