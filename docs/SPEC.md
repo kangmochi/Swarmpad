@@ -119,18 +119,34 @@ reward coarse enough to show progress live. Nothing about the profile is
 hidden: the factory records the launch arguments on-chain and the token exposes
 them through its view methods.
 
-## 8. Open questions
+## 8. Settled questions
 
-1. Exact `.md` schema (fields the agent endpoint maps to launch arguments).
-2. Who pays the launch deposit. The factory derives it from the token code size
-   (`storage_byte_cost * code_len + 0.3 NEAR`); today the caller attaches it and
-   it is forwarded to the new project account. Open: creator pays, protocol
-   pays, or a fixed launch fee is added on top.
+Both questions that were open while the contracts were being written are now
+answered in code and on the live deployment.
+
+1. **The `.md` schema.** A launch file is a `---` frontmatter block plus a body.
+   The frontmatter carries `name`, `symbol`, `slug`, `supply`,
+   `reward_per_proof`, `epoch_cap`, `threshold_bps`, `duration_days` and
+   optionally `decimals` (0-24, default 18). The body is the project
+   description. Parsing, defaults and validation live in `web/src/lib/launch.ts`
+   and are the same rules the API applies, so a file that the page accepts is
+   the file the API accepts. The field list is also on `/docs#schema`.
+2. **Who pays the launch deposit.** The caller does. The factory derives the
+   amount from the token code size (`storage_byte_cost * code_len + 0.3 NEAR`,
+   2.6874 NEAR with the v2 build) and forwards it to the new project account.
+   There is no protocol subsidy and no extra launch fee on top; the API returns
+   the exact figure as `deposit` so an agent can attach it without guessing.
 
 ## 9. Testnet status
 
-Deployed and verified on 7 November 2026: factory `swarmpad.testnet`, demo
-project `genesis.swarmpad.testnet`, one proof mined on-chain, and the project
-account has zero access keys, so immutability holds in practice. Addresses,
-balances and the two bugs found during the first launches are in
-`docs/TESTNET.md`.
+As of 7 November 2026: factory `swarmpad.testnet`, seven projects in the
+registry, and two finished outcomes on chain. `swarm3.swarmpad.testnet` stopped
+at 5% of supply and finalized `Failed`; `validrun.swarmpad.testnet` mined 50%,
+finalized `Valid`, and burned the remaining 50% in the same call. Both prove the
+deadline path end to end, including the burn.
+
+Every project account holds zero access keys, so a token cannot be upgraded or
+rescued after launch: the v1 projects (`genesis`, `swarm`, `swarm2`) have no
+`ft_metadata` because of a bug fixed in v2, and that is permanent by design, not
+an oversight. Addresses, balances and the bugs found during the first launches
+are in `docs/TESTNET.md`.

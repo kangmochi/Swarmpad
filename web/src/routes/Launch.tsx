@@ -79,6 +79,17 @@ export function Launch() {
 
       <div className="launch__grid">
         <div className="launch__editor">
+          {text === SAMPLE ? (
+            <p className="launch__warn launch__warn--on">
+              This is the sample template, not a project. Edit <code>name</code>,{" "}
+              <code>symbol</code> and <code>slug</code> before launching: a launch creates a real
+              token on testnet and attaches 2.6874 NEAR.
+            </p>
+          ) : (
+            <p className="launch__warn">
+              The file is a template. Check the name, symbol and slug before launching.
+            </p>
+          )}
           <div className="launch__bar">
             <span className="mono-label">project.md</span>
             <div className="launch__bar-actions">
@@ -177,7 +188,7 @@ export function Launch() {
 
           <div className="launch__actions">
             {wallet.accountId ? (
-              <PillButton disabled={!ready || submitting} onClick={() => void submit()}>
+              <PillButton disabled={!ready || submitting || text === SAMPLE} onClick={() => void submit()}>
                 {submitting ? "Sending…" : "Launch project"}
               </PillButton>
             ) : (

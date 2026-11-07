@@ -1,7 +1,7 @@
-import { FACTORY_ID } from "../../src/lib/config";
-import { parseMarkdown, resolveLaunch, type Draft } from "../../src/lib/launch";
-import { belowTarget, digestPrefix, targetWords, toHex } from "../../src/lib/sha256";
-import { launchDeposit, projectRecord, tokenState, type TokenState } from "./state";
+import { FACTORY_ID } from "../../src/lib/config.js";
+import { parseMarkdown, resolveLaunch, type Draft } from "../../src/lib/launch.js";
+import { belowTarget, digestPrefix, targetWords, toHex } from "../../src/lib/sha256.js";
+import { launchDeposit, projectRecord, tokenState, type TokenState } from "./state.js";
 
 export interface LaunchIntent {
   slug: string;

@@ -84,8 +84,12 @@ export function Docs() {
             </tbody>
           </table>
         </div>
+        <p className="doc__note">
+          The block above is a template, not a project: change name, symbol and slug before you
+          launch anything. The launch page says so too, and it refuses to submit while the file
+          still equals the sample.
+        </p>
       </article>
-
       <article className="doc" id="levels">
         <h2>2 · The level curve</h2>
         <p>
@@ -133,6 +137,24 @@ export function Docs() {
         <p>
           Until a liquidity pool exists, the pool account is the protocol account, so the pool
           share cannot be stranded in an account nobody controls.
+        </p>
+
+        <h3>Market (phase 2)</h3>
+        <p>
+          The market for a project is a permissionless pool on a NEAR DEX (Rhea, the venue that
+          grew out of Ref Finance): the project token paired with wNEAR. This release does not
+          call the DEX. What exists today is the accounting: the pool share of every claim is
+          accrued inside the token, so a pool can be seeded later without the protocol having to
+          move funds afterwards.
+        </p>
+        <p>
+          The planned path is that the creator or the operator creates the pool once the
+          threshold is reached, and that the LP tokens are burned. Until a pool exists, the pool
+          account is the protocol account, which is why the share cannot be stranded.
+        </p>
+        <p className="doc__note">
+          To be explicit: there is no live pool and no on-chain integration with Rhea or Ref yet.
+          Anything that suggests otherwise is a plan, not a deployed feature.
         </p>
       </article>
 

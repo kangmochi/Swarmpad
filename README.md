@@ -4,14 +4,20 @@ Agent-run mining launchpad on NEAR: a creator agent ships a token from a single 
 
 ## Status
 
-Deployed on NEAR testnet: factory `swarmpad.testnet`, current project
-`swarm3.swarmpad.testnet` on the v2 token build (which exports `ft_metadata`),
-proofs mined on-chain and the claim fee split paid out. Project accounts hold
-zero access keys, so tokens cannot be upgraded. Live addresses, balances and
-known state are in `docs/TESTNET.md`.
+Deployed on NEAR testnet: factory `swarmpad.testnet`, seven projects, and two
+finished outcomes on chain. `validrun.swarmpad.testnet` mined 50% of supply,
+finalized `Valid` and burned the rest; `swarm3.swarmpad.testnet` stopped at 5%
+and finalized `Failed`. The v2 token build exports `ft_metadata`; project
+accounts hold zero access keys, so a token cannot be upgraded after launch. Live
+addresses, balances and known state are in `docs/TESTNET.md`.
 
 - Web app: https://swarmpad.vercel.app
 - CLI miner: `tools/miner`
+- Demo script: `docs/DEMO.md` · submission checklist: `docs/SUBMISSION.md`
+
+![The landing page](docs/screenshots/01-home.png)
+
+![The project console](docs/screenshots/03-console-validrun.png)
 
 ## Layout
 
@@ -20,7 +26,37 @@ known state are in `docs/TESTNET.md`.
 - `crates/factory` - project registry and token deployment
 - `web` - React app: registry, project console, launch flow, docs
 - `tools/miner` - command line miner for testnet projects
-- `docs/SPEC.md` - the agreed mechanics, plus open questions
+- `docs/SPEC.md` - the agreed mechanics, with the settled questions recorded
+
+## Launch file
+
+A project starts as one markdown file. The frontmatter is the launch, the body is
+the description:
+
+```
+---
+name: Swarm Token
+symbol: SWRM
+slug: swarm
+supply: 1000000
+reward_per_proof: 500
+epoch_cap: 5000
+threshold_bps: 5000
+duration_days: 30
+decimals: 18
+---
+
+A token for the swarm.
+```
+
+`supply`, `reward_per_proof`, `epoch_cap`, `threshold_bps` and `duration_days`
+are the creator's choice; `epoch_cap` must be at least `reward_per_proof` and
+`threshold_bps` sits between 5000 and 10000. The difficulty curve is not
+selectable. That block is a template: change `name`, `symbol` and `slug` before launching,
+and the page refuses to submit while the file still equals the sample. Paste the
+file into `/launch` to see the parsed launch, the derived token account and the
+exact deposit before signing, or send it to
+`POST /v1/projects` and get the same thing back as JSON.
 
 ## How mining works
 
@@ -33,6 +69,19 @@ Difficulty is not selectable per project: the base is 30 bits, the ladder is 40
 levels, and the curve is x1.10 for every launch. What a launch chooses are the
 parameters that were always per-project: supply, reward per proof, per-account
 cap, threshold and deadline.
+
+## Market (phase 2)
+
+There is no market yet, and the contracts do not call a DEX. The plan recorded in
+`docs/SPEC.md` §6 is a permissionless pool on a NEAR DEX (Rhea, the venue that
+grew out of Ref Finance): the project token paired with wNEAR, created by the
+creator or the operator once the threshold is reached, with the LP tokens burned.
+
+What exists today is the accounting for it: 50% of every claim fee is accrued in
+the token for the pool account, so a pool can be seeded later without the
+protocol moving funds after the fact. Until a pool exists that account is the
+protocol account, which keeps the share from being stranded. Treat any mention of
+trading, liquidity or price as roadmap, not as a deployed feature.
 
 ## Launch profiles
 
@@ -71,8 +120,9 @@ proof is rejected on-chain.
 cd web
 npm ci
 npm run dev      # http://127.0.0.1:5183
-npm test
+npm test         # 14 unit tests
 npm run build
+npm run e2e      # smoke tests over the built app (needs a browser)
 ```
 
 Five routes read the factory and each token straight over JSON-RPC: the landing

@@ -156,3 +156,19 @@ Both outcomes are covered by sandbox tests in `integration-tests/tests/finalize.
 which need no testnet funds: one project above the threshold finalizes `Valid`
 with the remainder burned, one below finalizes `Failed` and rejects a valid
 proof after the deadline.
+
+## Outcome: `validrun` finalized as Valid
+
+The other outcome needed a project that clears its threshold, so one was
+launched with `reward_per_proof` = 50% of supply: a single accepted proof is
+half the supply, which is the threshold.
+
+- launch deposit 2.6874 NEAR, paid by `swarmpad-ops.testnet`; 12 minute deadline
+- one proof mined: tx `aHEVHJvHuesV4v7b39SysbZ8wZZCpbQcfL9VxTNBxPu`, preimage
+  `F4phTDteJUAAAAAAD9lyvA==`, 1,325.46M hashes in 2m 34s (~8.6 MH/s, five
+  threads), fee 0.05 NEAR
+- mined 500,000 SWRM at level 21; after the deadline `finalize` returned `Valid`
+- `burned` 500,000, `remaining` 500,000 (same semantics as above)
+
+Both outcomes now exist on testnet: `swarm3` Failed at 5% mined, `validrun`
+Valid at 50% mined.
