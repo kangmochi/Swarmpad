@@ -16,8 +16,9 @@ use swarmpad_common::{Project, BPS_DENOMINATOR, MIN_THRESHOLD_BPS};
 /// Gas for the token `new` call. Deployment itself does not use this budget.
 const TOKEN_INIT_GAS: Gas = Gas::from_tgas(60);
 
-/// Minimum deposit to create the token account and deploy its code.
-const MIN_LAUNCH_DEPOSIT: NearToken = NearToken::from_millinear(500);
+/// Head room on top of the code storage cost: account creation, the initial
+/// state and the first claim records.
+const LAUNCH_BUFFER: NearToken = NearToken::from_millinear(300);
 
 #[derive(BorshStorageKey, near_sdk::borsh::BorshSerialize)]
 #[borsh(crate = "near_sdk::borsh")]
@@ -72,6 +73,10 @@ impl Factory {
 
     /// Uploads the token wasm used for new projects. Only the protocol admin
     /// can call it, and it never changes a project that is already deployed.
+    /// Payable because the protocol covers the storage of the code with the
+    /// attached deposit; calling it with a deposit but without `#[payable]`
+    /// makes the call trap before the body runs.
+    #[payable]
     pub fn set_token_code(&mut self, code: Base64VecU8) {
         self.assert_admin();
         require!(!code.0.is_empty(), "Code must not be empty");
@@ -81,11 +86,11 @@ impl Factory {
     /// Registers a project and deploys its token on `<slug>.<factory>`.
     #[payable]
     pub fn launch(&mut self, args: LaunchArgs) -> AccountId {
+        require!(!self.token_code.is_empty(), "Token code is not set");
         require!(
-            env::attached_deposit() >= MIN_LAUNCH_DEPOSIT,
+            env::attached_deposit() >= self.launch_deposit(),
             "Attach the launch deposit"
         );
-        require!(!self.token_code.is_empty(), "Token code is not set");
         require!(is_valid_slug(&args.slug), "Invalid slug");
         require!(
             (MIN_THRESHOLD_BPS..=BPS_DENOMINATOR).contains(&args.threshold_bps),
@@ -145,6 +150,15 @@ impl Factory {
         // handling has to be verified against testnet before this is claimed
         // in the docs.
         token_account
+    }
+
+    /// Deposit a caller has to attach so the new token account can pay for its
+    /// own code storage. The first live launch failed with LackBalanceForState
+    /// because this was a fixed 0.5 NEAR floor instead of the code cost.
+    pub fn launch_deposit(&self) -> NearToken {
+        env::storage_byte_cost()
+            .saturating_mul(self.token_code.len() as u128)
+            .saturating_add(LAUNCH_BUFFER)
     }
 
     fn assert_admin(&self) {
@@ -225,6 +239,31 @@ mod tests {
         let mut factory = build();
         factory.set_token_code(Base64VecU8(vec![1, 2, 3]));
         assert_eq!(factory.token_code_len(), 3);
+    }
+
+    #[test]
+    fn set_token_code_accepts_deposit() {
+        let mut factory = build();
+        testing_env!(VMContextBuilder::new()
+            .predecessor_account_id(accounts(1))
+            .attached_deposit(NearToken::from_millinear(10))
+            .build());
+        factory.set_token_code(Base64VecU8(vec![1, 2, 3]));
+        assert_eq!(factory.token_code_len(), 3);
+    }
+
+    #[test]
+    fn launch_requires_deposit_covering_code_storage() {
+        let mut factory = build();
+        factory.set_token_code(Base64VecU8(vec![0u8; 1000]));
+        testing_env!(VMContextBuilder::new()
+            .predecessor_account_id(accounts(1))
+            .attached_deposit(NearToken::from_millinear(1))
+            .build());
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            factory.launch(sample_args())
+        }));
+        assert!(result.is_err());
     }
 
     #[test]
