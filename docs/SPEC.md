@@ -139,11 +139,12 @@ answered in code and on the live deployment.
 
 ## 9. Testnet status
 
-As of 7 November 2026: factory `swarmpad.testnet`, seven projects in the
-registry, and two finished outcomes on chain. `swarm3.swarmpad.testnet` stopped
-at 5% of supply and finalized `Failed`; `validrun.swarmpad.testnet` mined 50%,
-finalized `Valid`, and burned the remaining 50% in the same call. Both prove the
-deadline path end to end, including the burn.
+As of 7 November 2026: factory `swarmpad.testnet` holds seven registry entries.
+Five of them have a token contract and all five are finalised: `validrun`
+`Valid` at 50% mined, and `genesis`, `swarm`, `swarm2`, `swarm3` all `Failed`
+between 2.5% and 5%. The remaining two entries (`demo`, `demo2`) predate the
+deposit fix and have no contract. Every finalisation burned the unmined
+remainder, so the deadline path is proven on chain rather than in a test.
 
 Every project account holds zero access keys, so a token cannot be upgraded or
 rescued after launch: the v1 projects (`genesis`, `swarm`, `swarm2`) have no
