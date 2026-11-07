@@ -4,7 +4,7 @@ import { DISPLAY_DECIMALS } from "../lib/config";
 import { countdown, formatBps, formatToken, shortAccount } from "../lib/format";
 import type { ProjectView } from "../lib/types";
 import { LevelLadder } from "./LevelLadder";
-import { StatusChip } from "./StatusChip";
+import { StatusChip, VersionChip } from "./StatusChip";
 
 export function ProjectCard({ project, now }: { project: ProjectView; now: number }) {
   const { record, token, meta } = project;
@@ -16,7 +16,12 @@ export function ProjectCard({ project, now }: { project: ProjectView; now: numbe
     <Link to={`/projects/${record.slug}`} className="projcard">
       <div className="projcard__top">
         <span className="mono-label">project</span>
-        <StatusChip status={project.status} unknown={project.tokenError !== null} />
+        <div className="projcard__chips">
+          <VersionChip version={project.version} />
+          {project.version === "none" ? null : (
+            <StatusChip status={project.status} unknown={project.version === "unknown"} />
+          )}
+        </div>
       </div>
 
       <div className="projcard__title">

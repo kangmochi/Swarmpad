@@ -1,12 +1,16 @@
 import { levelFor, minedBps } from "./format";
-import { RpcError } from "./rpc";
+import { RpcError, isMissingAccount } from "./rpc";
 import { fetchTokenState, fetchTokenSummary } from "./token";
 import type { ProjectRecord, ProjectStatus, ProjectView } from "./types";
 
 const CACHE_MS = 20_000;
 const cache = new Map<string, { at: number; value: ProjectView }>();
 
-function fallback(record: ProjectRecord, tokenError: string): ProjectView {
+function fallback(
+  record: ProjectRecord,
+  tokenError: string,
+  version: ProjectView["version"] = "unknown",
+): ProjectView {
   const supply = BigInt(record.supply || "0");
   return {
     record,
@@ -16,6 +20,7 @@ function fallback(record: ProjectRecord, tokenError: string): ProjectView {
     minedBps: 0,
     level: levelFor(0n, supply),
     progress: 0,
+    version,
   };
 }
 
@@ -41,6 +46,7 @@ export async function loadProject(record: ProjectRecord): Promise<ProjectView> {
       level: token.level,
       progress: Number(token.mined) / Math.max(1, Number(token.supply)),
       meta: token.meta,
+      version: token.meta ? "v2" : "v1",
     };
     cache.set(record.slug, { at: Date.now(), value });
     return value;
@@ -48,7 +54,12 @@ export async function loadProject(record: ProjectRecord): Promise<ProjectView> {
     if (error instanceof RpcError && error.retryable) {
       throw error;
     }
-    return fallback(record, error instanceof Error ? error.message : "token read failed");
+    const missing = isMissingAccount(error);
+    return fallback(
+      record,
+      missing ? "no project account" : error instanceof Error ? error.message : "token read failed",
+      missing ? "none" : "unknown",
+    );
   }
 }
 
@@ -66,12 +77,18 @@ export async function loadProjectList(record: ProjectRecord): Promise<ProjectVie
       level: levelFor(summary.mined, supply),
       progress: Number(summary.mined) / Math.max(1, Number(supply)),
       meta: summary.meta,
+      version: summary.meta ? "v2" : "v1",
     };
   } catch (error) {
     if (error instanceof RpcError && error.retryable) {
       throw error;
     }
-    return fallback(record, error instanceof Error ? error.message : "token read failed");
+    const missing = isMissingAccount(error);
+    return fallback(
+      record,
+      missing ? "no project account" : error instanceof Error ? error.message : "token read failed",
+      missing ? "none" : "unknown",
+    );
   }
 }
 

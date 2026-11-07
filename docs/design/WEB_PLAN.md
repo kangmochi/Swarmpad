@@ -83,8 +83,12 @@ Agent-facing HTTP API, Ref pool integration, mainnet deploy.
   nodes (`rpc.testnet.near.org`, `near-testnet.gateway.tatum.io`,
   `rpc.testnet.fastnear.com`) and skip a node that refused for a minute. The
   first call of a session races all three and keeps whichever answers first.
-- Lists read two calls per project (`status`, `mined`) and derive the level from
-  the registry supply; the console reads the full state.
+- Lists read two calls per project (`status`, `mined`, plus one cached
+  `ft_metadata`) and derive the level from the registry supply; the console
+  reads the full state.
+- Every project is labelled with the token build it runs (`token v1`,
+  `token v2`, `no token`), so the difference between "old project" and "old
+  code" is explicit and checkable on chain. `/docs#versions` holds the table.
 - Lighthouse mobile on the production build: 90 performance, 100 accessibility,
   96 best practices, 100 SEO. The best-practices deduction is console noise from
   the rate-limited public RPC in the build sandbox.
