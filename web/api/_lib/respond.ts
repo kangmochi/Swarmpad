@@ -1,4 +1,6 @@
-/** Small helpers so every handler answers the same shape. */
+/** Small helpers so every handler answers the same shape, Node style. */
+
+import type { IncomingMessage, ServerResponse } from "node:http";
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -7,24 +9,36 @@ const CORS = {
   "cache-control": "no-store",
 };
 
-export function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data, null, 2), {
-    status,
-    headers: { "content-type": "application/json; charset=utf-8", ...CORS },
-  });
+export function json(res: ServerResponse, data: unknown, status = 200): void {
+  res.writeHead(status, { "content-type": "application/json; charset=utf-8", ...CORS });
+  res.end(JSON.stringify(data, null, 2));
 }
 
-export function fail(message: string, status = 400, extra: unknown = null): Response {
-  return json({ error: message, detail: extra }, status);
+export function fail(
+  res: ServerResponse,
+  message: string,
+  status = 400,
+  extra: unknown = null,
+): void {
+  json(res, { error: message, detail: extra }, status);
 }
 
-export function preflight(): Response {
-  return new Response(null, { status: 204, headers: CORS });
+export function preflight(res: ServerResponse): void {
+  res.writeHead(204, CORS);
+  res.end();
 }
 
-export async function readJson<T>(request: Request): Promise<T | null> {
+export async function readJson<T>(req: IncomingMessage): Promise<T | null> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(chunk as Buffer);
+  }
+  const raw = Buffer.concat(chunks).toString("utf8");
+  if (!raw) {
+    return null;
+  }
   try {
-    return (await request.json()) as T;
+    return JSON.parse(raw) as T;
   } catch {
     return null;
   }

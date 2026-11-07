@@ -1,56 +1,58 @@
 /**
- * The whole /v1 surface in one place.
+ * The whole /v1 surface in one router, written against (req, res).
  *
- * A single catch-all function keeps deployment simple: one entry point, no
- * dynamic-route resolution to rely on, and the same handler answers /api/ping.
+ * Returning a Response object works on the Edge runtime and in tests, but on the
+ * Node.js runtime it is not the handler contract, which is why every route
+ * answered FUNCTION_INVOCATION_FAILED. res.end is the contract that holds on
+ * every runtime, including `vercel dev` and a plain node server.
  */
+
+import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { FACTORY_ID } from "../../src/lib/config.js";
 import { buildLaunch, checkProof } from "./prepare.js";
 import { fail, json, preflight, readJson } from "./respond.js";
 import { projectCount, projectsPage, projectRecord, tokenMetadata, tokenState } from "./state.js";
 
-function segments(request: Request): string[] {
-  const path = new URL(request.url).pathname.replace(/^\/(api|v1)/, "");
-  return path.split("/").filter(Boolean);
-}
-
-async function listOrPrepare(request: Request): Promise<Response> {
-  if (request.method === "GET") {
-    const url = new URL(request.url);
+async function listOrPrepare(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  if (req.method === "GET") {
+    const url = new URL(req.url ?? "/", "http://localhost");
     const from = Math.max(0, Number(url.searchParams.get("from") ?? 0) || 0);
     const limit = Math.min(24, Math.max(1, Number(url.searchParams.get("limit") ?? 12) || 12));
     try {
       const [count, projects] = await Promise.all([projectCount(), projectsPage(from, limit)]);
-      return json({ factory: FACTORY_ID, count, from, limit, projects });
+      json(res, { factory: FACTORY_ID, count, from, limit, projects });
     } catch (error) {
-      return fail("factory read failed", 502, error instanceof Error ? error.message : null);
+      fail(res, "factory read failed", 502, error instanceof Error ? error.message : null);
     }
+    return;
   }
 
-  const body = await readJson<{ markdown?: string; creator?: string }>(request);
+  const body = await readJson<{ markdown?: string; creator?: string }>(req);
   if (!body?.markdown || !body?.creator) {
-    return fail("body must be { markdown, creator }");
+    fail(res, "body must be { markdown, creator }");
+    return;
   }
   try {
     const intent = await buildLaunch(body.markdown, body.creator);
-    return json(intent, intent.errors.length > 0 ? 422 : 201);
+    json(res, intent, intent.errors.length > 0 ? 422 : 201);
   } catch (error) {
-    return fail("could not prepare the launch", 502, error instanceof Error ? error.message : null);
+    fail(res, "could not prepare the launch", 502, error instanceof Error ? error.message : null);
   }
 }
 
-async function readProject(slug: string): Promise<Response> {
+async function readProject(res: ServerResponse, slug: string): Promise<void> {
   try {
     const record = await projectRecord(slug);
     if (!record) {
-      return fail(`no project named ${slug}`, 404);
+      fail(res, `no project named ${slug}`, 404);
+      return;
     }
     const [state, meta] = await Promise.all([
       tokenState(record.token_account),
       tokenMetadata(record.token_account),
     ]);
-    return json({
+    json(res, {
       slug,
       version: meta ? "v2" : "v1",
       meta,
@@ -65,64 +67,68 @@ async function readProject(slug: string): Promise<Response> {
       },
     });
   } catch (error) {
-    return fail("token read failed", 502, error instanceof Error ? error.message : null);
+    fail(res, "token read failed", 502, error instanceof Error ? error.message : null);
   }
 }
 
-async function prove(request: Request, slug: string): Promise<Response> {
-  const body = await readJson<{ preimage?: string }>(request);
+async function prove(req: IncomingMessage, res: ServerResponse, slug: string): Promise<void> {
+  const body = await readJson<{ preimage?: string }>(req);
   if (!body?.preimage) {
-    return fail("body must be { preimage }");
+    fail(res, "body must be { preimage }");
+    return;
   }
   try {
     const result = await checkProof(slug, body.preimage);
-    return json({ slug, ...result }, result.valid ? 202 : 422);
+    json(res, { slug, ...result }, result.valid ? 202 : 422);
   } catch (error) {
-    return fail("proof check failed", 502, error instanceof Error ? error.message : null);
+    fail(res, "proof check failed", 502, error instanceof Error ? error.message : null);
   }
 }
 
-export default async function handler(request: Request): Promise<Response> {
-  if (request.method === "OPTIONS") {
-    return preflight();
-  }
-
-  const parts = segments(request);
-
-  if (parts.length === 1 && parts[0] === "ping") {
-    return json({
-      ok: true,
-      runtime: typeof process === "undefined" ? "web" : `node ${process.version}`,
-      now: new Date().toISOString(),
-    });
+/** Routes a request whose path has already been split into segments. */
+export async function route(
+  req: IncomingMessage,
+  res: ServerResponse,
+  parts: string[],
+): Promise<void> {
+  if (req.method === "OPTIONS") {
+    preflight(res);
+    return;
   }
 
   if (parts[0] !== "projects") {
-    return fail("not found", 404, { path: parts.join("/") });
+    fail(res, "not found", 404, { path: parts.join("/") });
+    return;
   }
 
   if (parts.length === 1) {
-    if (request.method !== "GET" && request.method !== "POST") {
-      return fail("method not allowed", 405);
+    if (req.method !== "GET" && req.method !== "POST") {
+      fail(res, "method not allowed", 405);
+      return;
     }
-    return listOrPrepare(request);
+    await listOrPrepare(req, res);
+    return;
   }
 
-  const slug = decodeURIComponent(parts[1] ?? "");
+  const slug = parts[1] ?? "";
 
   if (parts.length === 2) {
-    if (request.method !== "GET") {
-      return fail("method not allowed", 405);
+    if (req.method !== "GET") {
+      fail(res, "method not allowed", 405);
+      return;
     }
-    return readProject(slug);
+    await readProject(res, slug);
+    return;
   }
 
   if (parts.length === 3 && parts[2] === "proofs") {
-    if (request.method !== "POST") {
-      return fail("method not allowed", 405);
+    if (req.method !== "POST") {
+      fail(res, "method not allowed", 405);
+      return;
     }
-    return prove(request, slug);
+    await prove(req, res, slug);
+    return;
   }
 
-  return fail("not found", 404, { path: parts.join("/") });
+  fail(res, "not found", 404, { path: parts.join("/") });
 }

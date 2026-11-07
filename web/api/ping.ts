@@ -1,10 +1,9 @@
-import { json } from "./_lib/respond";
+import type { IncomingMessage, ServerResponse } from "node:http";
 
-/** Health check: proves the function runtime can answer at all. */
-export default function handler(): Response {
-  return json({
-    ok: true,
-    runtime: typeof process === "undefined" ? "web" : `node ${process.version}`,
-    now: new Date().toISOString(),
-  });
+/** Health check with no imports: if this answers, the runtime works. */
+export default function handler(_req: IncomingMessage, res: ServerResponse) {
+  res.writeHead(200, { "content-type": "application/json" });
+  res.end(
+    JSON.stringify({ ok: true, runtime: `node ${process.version}`, now: new Date().toISOString() }),
+  );
 }
