@@ -1,5 +1,5 @@
-import { FACTORY_ID } from "../../src/lib/config";
-import { viewCall } from "./rpc";
+import { FACTORY_ID } from "../../src/lib/config.js";
+import { viewCall } from "./rpc.js";
 
 export interface ProjectRecord {
   slug: string;
