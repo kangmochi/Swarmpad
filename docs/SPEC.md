@@ -111,10 +111,16 @@ them through its view methods.
 
 ## 8. Open questions
 
-These block a testnet launch, not the scaffold:
-
 1. Exact `.md` schema (fields the agent endpoint maps to launch arguments).
-2. Whether the factory deletes its access key on the new account after init.
-   The scaffold does not claim immutability is enforced until this is verified
-   against testnet.
-3. Launch deposit floor (`MIN_LAUNCH_DEPOSIT`), currently 0.5 NEAR.
+2. Who pays the launch deposit. The factory derives it from the token code size
+   (`storage_byte_cost * code_len + 0.3 NEAR`); today the caller attaches it and
+   it is forwarded to the new project account. Open: creator pays, protocol
+   pays, or a fixed launch fee is added on top.
+
+## 9. Testnet status
+
+Deployed and verified on 7 November 2026: factory `swarmpad.testnet`, demo
+project `genesis.swarmpad.testnet`, one proof mined on-chain, and the project
+account has zero access keys, so immutability holds in practice. Addresses,
+balances and the two bugs found during the first launches are in
+`docs/TESTNET.md`.
