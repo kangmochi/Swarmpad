@@ -31,9 +31,9 @@
   --warn: #ffc857;
 
   /* Type */
-  --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
-  --font-ui: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+  --font-display: "Outfit Variable", "Outfit", "Segoe UI", system-ui, sans-serif;
+  --font-ui: "Inter Variable", "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
   --text-xs: 11px;
   --text-sm: 13px;

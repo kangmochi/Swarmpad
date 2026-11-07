@@ -72,3 +72,19 @@ cream `#DED6C6` text on navy `#080A18`. All through CSS variables.
 ## Out of scope
 
 Agent-facing HTTP API, Ref pool integration, mainnet deploy.
+
+## Notes from the build
+
+- The token exports `ft_balance_of` but not `ft_metadata`: the metadata trait is
+  implemented without `#[near]`, so it is not an exported method. The app shows
+  the slug as the project name and formats amounts with `DISPLAY_DECIMALS = 18`,
+  which is what every launch so far used. Adding the attribute would need a new
+  token version; existing projects are immutable.
+- Public testnet nodes rate limit per IP, so reads run one at a time, walk three
+  nodes (`rpc.testnet.near.org`, `near-testnet.gateway.tatum.io`,
+  `rpc.testnet.fastnear.com`) and skip a node that refused for a minute.
+- Lists read two calls per project (`status`, `mined`) and derive the level from
+  the registry supply; the console reads the full state.
+- Lighthouse mobile on the production build: 90 performance, 100 accessibility,
+  96 best practices, 100 SEO. The best-practices deduction is console noise from
+  the rate-limited public RPC in the build sandbox.
