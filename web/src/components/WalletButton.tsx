@@ -1,13 +1,17 @@
 import { useState } from "react";
 
+import hereIcon from "../assets/wallets/here.png";
+import meteorIcon from "../assets/wallets/meteor.png";
+import nightlyIcon from "../assets/wallets/nightly.png";
+import senderIcon from "../assets/wallets/sender.png";
 import { useWallet } from "../lib/hooks";
 import { shortAccount } from "../lib/format";
 
 const WALLETS = [
-  { id: "meteor-wallet", name: "Meteor", note: "extension or popup" },
-  { id: "here-wallet", name: "HERE", note: "popup sign-in" },
-  { id: "sender", name: "Sender", note: "extension" },
-  { id: "nightly", name: "Nightly", note: "extension or app" },
+  { id: "meteor-wallet", name: "Meteor", note: "extension or popup", icon: meteorIcon },
+  { id: "here-wallet", name: "HERE", note: "popup sign-in", icon: hereIcon },
+  { id: "sender", name: "Sender", note: "extension", icon: senderIcon },
+  { id: "nightly", name: "Nightly", note: "extension or app", icon: nightlyIcon },
 ] as const;
 
 export function WalletButton() {
@@ -79,7 +83,7 @@ export function WalletButton() {
             onClick={() => setOpen(false)}
           />
           <div className="wallet__panel" role="dialog" aria-label="Choose a wallet">
-            <p className="mono-label">Testnet only</p>
+            <p className="mono-label">NEAR testnet</p>
             {WALLETS.map((entry) => (
               <button
                 key={entry.id}
@@ -88,7 +92,10 @@ export function WalletButton() {
                 onClick={() => void connect(entry.id)}
                 disabled={pending !== null}
               >
-                <span>{entry.name}</span>
+                <span className="wallet__brand">
+                  <img src={entry.icon} alt="" width={24} height={24} />
+                  {entry.name}
+                </span>
                 <span className="wallet__note">
                   {pending === entry.id ? "opening…" : entry.note}
                 </span>

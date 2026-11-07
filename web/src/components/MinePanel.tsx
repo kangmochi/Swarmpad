@@ -10,6 +10,8 @@ import {
 } from "../lib/format";
 import { useMiner } from "../lib/miner";
 import type { TokenState } from "../lib/types";
+import { Link } from "react-router";
+
 import { PillButton } from "./Pill";
 
 /**
@@ -68,7 +70,12 @@ export function MinePanel({
           <p className="mono-label">Proof search</p>
           <h3>Find a preimage under the level target</h3>
         </div>
-        <span className="mining__level mono-label">level {token.level} / 40</span>
+        <div className="mining__head-right">
+          <span className="mining__level mono-label">level {token.level} / 40</span>
+          <Link className="linkish" to="/docs#mining">
+            how mining works
+          </Link>
+        </div>
       </div>
 
       <dl className="mining__stats">

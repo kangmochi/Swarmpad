@@ -284,8 +284,88 @@ POST /v1/projects
         </p>
       </article>
 
+      <article className="doc" id="mining">
+        <h2>7 · Mining</h2>
+        <p>
+          A claim is one accepted proof: a 16-byte preimage whose SHA-256 prefix sits below the
+          target of the current level, sent with exactly 0.05 NEAR attached. That fee is split
+          50/30/20 for pool, creator and protocol on every claim. There is no subscription and
+          no prepayment: no claim, no fee.
+        </p>
+        <h3>Three ways to mine, same rules</h3>
+        <div className="tablewrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col">route</th>
+                <th scope="col">how</th>
+                <th scope="col">best for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="mono-value">web</td>
+                <td>
+                  Open a project, then <code>Proof search → Start searching</code>, and
+                  <code> Submit proof</code> once a preimage is found
+                </td>
+                <td>a first proof, no tooling</td>
+              </tr>
+              <tr>
+                <td className="mono-value">cli</td>
+                <td>
+                  <code>node mine.mjs --project &lt;slug&gt; --account &lt;account&gt;</code> in{" "}
+                  <code>tools/miner</code>
+                </td>
+                <td>long runs, one worker per core</td>
+              </tr>
+              <tr>
+                <td className="mono-value">api</td>
+                <td>
+                  <code>GET /v1/projects/:slug</code> for the target, then{" "}
+                  <code>POST /v1/projects/:slug/proofs</code> with the preimage
+                </td>
+                <td>agents that sign their own transactions</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Before you start</h3>
+        <ul className="doclist">
+          <li>
+            Wallet on <strong>NEAR testnet</strong> with at least 0.06 NEAR: 0.05 for the claim
+            fee plus gas.
+          </li>
+          <li>
+            Project must be <code>Mining</code> and the deadline not passed; both are shown at the
+            top of the console.
+          </li>
+          <li>
+            One account can claim at most <code>epoch_cap</code> per level, and the cap resets
+            when the ladder moves.
+          </li>
+          <li>
+            The browser miner runs about 9 MH/s on eight cores; a level 1 proof needs roughly
+            1.07e9 hashes, so minutes per proof, and each level is 1.10x heavier.
+          </li>
+        </ul>
+        <h3>What you get, and what ends it</h3>
+        <p>
+          Every accepted proof mints <code>reward_per_proof</code>: 2.5% of supply in the demo
+          profile (one proof per level) and 0.05% in production (fifty proofs per level). Mining
+          ends at the deadline, which is fixed at launch. Then anyone can call{" "}
+          <code>finalize</code>: <code>Valid</code> when the mined share reached the threshold,
+          <code> Failed</code> otherwise. Either way emission stops and the unmined remainder is
+          recorded as burned.
+        </p>
+        <p className="doc__note">
+          Live examples: <code>swarm3</code> closed at 5% and finalized <code>Failed</code> with
+          950,000 burned; <code>validrun</code> closed at 50% and finalized <code>Valid</code>.
+        </p>
+      </article>
+
       <article className="doc" id="addresses">
-        <h2>7 · Addresses</h2>
+        <h2>8 · Addresses</h2>
         <div className="tablewrap">
           <table className="table">
             <thead>

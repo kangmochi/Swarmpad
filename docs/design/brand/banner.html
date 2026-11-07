@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Swarmpad banner</title>
+    <style>
+      @font-face {
+        font-family: "Outfit Variable";
+        src: url("../../../web/node_modules/@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2")
+          format("woff2-variations");
+        font-weight: 100 900;
+      }
+      @font-face {
+        font-family: "Inter Variable";
+        src: url("../../../web/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2")
+          format("woff2-variations");
+        font-weight: 100 900;
+      }
+      @font-face {
+        font-family: "JetBrains Mono Variable";
+        src: url("../../../web/node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2")
+          format("woff2-variations");
+        font-weight: 100 800;
+      }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { width: 1500px; height: 500px; }
+      body {
+        background:
+          radial-gradient(70% 120% at 88% 30%, rgba(61, 217, 232, 0.2), transparent 60%),
+          radial-gradient(50% 90% at 10% 100%, rgba(255, 79, 163, 0.16), transparent 62%),
+          #140c2b;
+        display: flex;
+        align-items: center;
+        padding: 0 96px;
+        gap: 64px;
+        position: relative;
+        overflow: hidden;
+      }
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(58, 42, 102, 0.45) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(58, 42, 102, 0.45) 1px, transparent 1px);
+        background-size: 50px 50px;
+        mask-image: radial-gradient(70% 80% at 60% 50%, #000 30%, transparent 75%);
+        opacity: 0.6;
+      }
+      .copy { position: relative; z-index: 1; max-width: 880px; }
+      .eyebrow {
+        font-family: "JetBrains Mono Variable", monospace;
+        font-size: 22px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: #3dd9e8;
+      }
+      h1 {
+        font-family: "Outfit Variable", sans-serif;
+        font-weight: 700;
+        font-size: 96px;
+        line-height: 0.92;
+        letter-spacing: -0.035em;
+        color: #f1ebd6;
+        margin-top: 18px;
+      }
+      h1 em { font-style: normal; color: #3dd9e8; }
+      p {
+        font-family: "Inter Variable", sans-serif;
+        font-size: 26px;
+        line-height: 1.45;
+        color: #a79fc4;
+        margin-top: 22px;
+        max-width: 720px;
+      }
+      .meta {
+        display: flex;
+        gap: 28px;
+        margin-top: 30px;
+        font-family: "JetBrains Mono Variable", monospace;
+        font-size: 18px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(241, 235, 214, 0.72);
+      }
+      .art {
+        position: relative;
+        z-index: 1;
+        flex: none;
+        display: grid;
+        place-items: center;
+      }
+      .art img {
+        width: 340px;
+        height: 340px;
+        filter: drop-shadow(0 24px 60px rgba(61, 217, 232, 0.3));
+      }
+      .bar {
+        position: absolute;
+        z-index: 2;
+        left: 96px;
+        right: 96px;
+        bottom: 42px;
+        height: 14px;
+        border-radius: 999px;
+        background: #2a1b4d;
+        border: 1px solid #3a2a66;
+        overflow: hidden;
+      }
+      .bar span {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 5%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #ff4fa3, #ff8ac0);
+        box-shadow: 0 0 18px rgba(255, 79, 163, 0.5);
+      }
+      .bar i {
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+          90deg,
+          rgba(11, 15, 26, 0.6) 0 1px,
+          transparent 1px calc(100% / 40)
+        );
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid"></div>
+    <div class="copy">
+      <div class="eyebrow">NEAR testnet · live</div>
+      <h1>Tokens that exist<br />only after the <em>work</em></h1>
+      <p>Fixed-supply tokens launched from a markdown file, mined by agents against an on-chain proof.</p>
+      <div class="meta"><span>40 levels</span><span>×1.10 per level</span><span>0.05 NEAR per proof</span></div>
+    </div>
+    <div class="art">
+      <img src="../mascot/mascot-idle-1024.png" alt="" />
+    </div>
+    <div class="bar"><span></span><i></i></div>
+  </body>
+</html>

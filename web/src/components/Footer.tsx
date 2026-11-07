@@ -32,7 +32,7 @@ export function Footer() {
 
         <div className="footer__col">
           <p className="mono-label">Resources</p>
-          <a href="https://near.org/testnet" target="_blank" rel="noreferrer">
+          <a href={DOCS_LINKS.nearDocs} target="_blank" rel="noreferrer">
             NEAR testnet
           </a>
           <a href={DOCS_LINKS.x} target="_blank" rel="noreferrer">

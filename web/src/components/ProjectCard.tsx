@@ -52,7 +52,7 @@ export function ProjectCard({ project, now }: { project: ProjectView; now: numbe
 
       <div className="projcard__foot">
         <span className="mono-label">creator {shortAccount(record.creator_id, 8)}</span>
-        <span className="projcard__open">Open console →</span>
+        <span className="projcard__open">{project.status === "Mining" ? "Mine →" : "Open console →"}</span>
       </div>
     </Link>
   );
