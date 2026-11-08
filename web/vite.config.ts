@@ -32,6 +32,17 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5183,
   },
+  resolve: {
+    alias: {
+      /**
+       * `safe-buffer` calls `require("buffer")`, which a browser build leaves
+       * external: at runtime the require answers undefined and the first
+       * `Buffer.from` in the wallet code throws. Pointing it at the npm
+       * polyfill keeps that path working in the bundle.
+       */
+      buffer: "buffer/",
+    },
+  },
   build: {
     target: "es2022",
     sourcemap: true,
