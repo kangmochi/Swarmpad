@@ -1866,8 +1866,32 @@ code {
 }
 
 @media (max-width: 900px) {
+  /* The nav used to vanish here, which left a phone with no way to reach
+     Projects or Docs. Keep it, as a second row under the brand. */
+  :root {
+    --header-h: 106px;
+  }
+
+  .header__inner {
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 8px;
+    padding-block: 8px;
+  }
+
   .navpill {
-    display: none;
+    display: flex;
+    order: 3;
+    flex: 1 0 100%;
+    justify-content: center;
+    padding: 4px;
+  }
+
+  .navpill a {
+    padding: 8px 0;
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
   }
 }
 
