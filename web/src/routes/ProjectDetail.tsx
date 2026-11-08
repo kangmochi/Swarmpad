@@ -271,7 +271,7 @@ export function ProjectDetail() {
               <p className="mono-label">Accrued fees</p>
               <dl className="feeside__list">
                 <div>
-                  <dt>pool · {token.poolAccount}</dt>
+                  <dt>pool · {token.poolAccount ?? "not exported by this build"}</dt>
                   <dd>{formatNear(token.accrued.pool)}</dd>
                 </div>
                 <div>

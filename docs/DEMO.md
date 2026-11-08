@@ -84,7 +84,7 @@ unsigned call to sign.
 
 - Difficulty is fixed for every launch: 30-bit base, 40 levels, 1.10x. Supply,
   reward per proof, cap, threshold and deadline are the creator's.
-- The market is phase 2 and not deployed: the plan is a wNEAR pool on a NEAR DEX
-  (Rhea, formerly Ref), with the 50% pool share accrued from now.
+- The market is not deployed: the plan is a wNEAR pool on Rhea (formerly Ref),
+  with the 50% pool share accruing from the first claim.
 - Old v1 projects (`genesis`, `swarm`, `swarm2`) have no `ft_metadata`; that bug
   was fixed in v2 for `swarm3` onwards, and v1 tokens cannot be upgraded.

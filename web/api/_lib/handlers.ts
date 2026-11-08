@@ -12,6 +12,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { FACTORY_ID } from "../../src/lib/config.js";
 import { buildLaunch, checkProof } from "./prepare.js";
 import { fail, json, preflight, readJson } from "./respond.js";
+import { RpcReadError } from "./rpc.js";
 import { projectCount, projectsPage, projectRecord, tokenMetadata, tokenState, tokenSummary } from "./state.js";
 
 async function listOrPrepare(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -48,10 +49,31 @@ async function readProject(res: ServerResponse, slug: string): Promise<void> {
       fail(res, `no project named ${slug}`, 404);
       return;
     }
-    const [state, meta] = await Promise.all([
-      tokenState(record.token_account),
-      tokenMetadata(record.token_account),
-    ]);
+
+    let read: [Awaited<ReturnType<typeof tokenState>>, Awaited<ReturnType<typeof tokenMetadata>>];
+    try {
+      read = await Promise.all([
+        tokenState(record.token_account),
+        tokenMetadata(record.token_account),
+      ]);
+    } catch (error) {
+      if (error instanceof RpcReadError && error.accountMissing) {
+        // The registry entry exists but the account behind it never did: two
+        // launches predate the deposit fix. Answer with that, not a 502.
+        json(res, {
+          slug,
+          version: "none",
+          meta: null,
+          record,
+          state: null,
+          note: "the launch was recorded but its project account does not exist",
+        });
+        return;
+      }
+      throw error;
+    }
+
+    const [state, meta] = read;
     json(res, {
       slug,
       version: meta ? "v2" : "v1",

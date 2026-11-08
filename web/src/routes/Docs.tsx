@@ -140,18 +140,19 @@ export function Docs() {
           share cannot be stranded in an account nobody controls.
         </p>
 
-        <h3>Market (phase 2)</h3>
+        <h3>Market — planned: a wNEAR pool on Rhea</h3>
         <p>
-          The market for a project is a permissionless pool on a NEAR DEX (Rhea, the venue that
-          grew out of Ref Finance): the project token paired with wNEAR. This release does not
-          call the DEX. What exists today is the accounting: the pool share of every claim is
-          accrued inside the token, so a pool can be seeded later without the protocol having to
-          move funds afterwards.
+          The market for a project is a permissionless pool on Rhea, the NEAR DEX that grew out
+          of Ref Finance: the project token paired with wNEAR. This release does not call the
+          DEX. What exists today is the accounting: the pool share of every claim is accrued
+          inside the token, so a pool can be seeded later without the protocol having to move
+          funds afterwards.
         </p>
         <p>
-          The planned path is that the creator or the operator creates the pool once the
-          threshold is reached, and that the LP tokens are burned. Until a pool exists, the pool
-          account is the protocol account, which is why the share cannot be stranded.
+          The path, in order: a project reaches its threshold and finalises Valid; the creator
+          or the operator creates the pool on Rhea against wNEAR; the LP tokens are burned, so
+          the share cannot be pulled back out. Until a pool exists, the pool account is the
+          protocol account, which is why the share cannot be stranded.
         </p>
         <p className="doc__note">
           To be explicit: there is no live pool and no on-chain integration with Rhea or Ref yet.

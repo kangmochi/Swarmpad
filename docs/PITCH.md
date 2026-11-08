@@ -54,7 +54,7 @@ rescued — the rules you read are the rules that run.
 
 ## If asked what is missing
 
-- No market yet: the plan is a wNEAR pool on a NEAR DEX (Rhea, formerly Ref),
-  with the pool share accruing from the first claim. Stated as phase 2 everywhere.
+- No market yet: the plan is a wNEAR pool on Rhea (formerly Ref), with the pool
+  share accruing from the first claim. Stated as planned, not deployed, everywhere.
 - No mainnet: testnet only, no audit, so no real money.
 - No backend beyond the keyless API: the web app reads JSON-RPC directly.

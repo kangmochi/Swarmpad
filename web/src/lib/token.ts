@@ -81,6 +81,22 @@ export async function fetchMetadata(account: string): Promise<TokenMeta | null> 
   }
 }
 
+/**
+ * A view the oldest token build never exported (`pool_account`). Missing is a
+ * normal state for those projects, not a failed read.
+ */
+async function optionalView<T>(account: string, method: string): Promise<T | null> {
+  try {
+    return await rpcView<T>(account, method);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (/method not found|methodresolveerror|methodnotfound/i.test(message)) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 /** Full token state, for the project console. */
 export async function fetchTokenState(account: string): Promise<TokenState> {
   const view = <T,>(method: string): Promise<T> => rpcView<T>(account, method);
@@ -115,7 +131,7 @@ export async function fetchTokenState(account: string): Promise<TokenState> {
     view<number>("deadline_ns"),
     view<string>("claim_fee"),
     view<Accrued>("accrued_fees"),
-    view<string>("pool_account"),
+    optionalView<string>(account, "pool_account"),
     fetchMetadata(account),
   ]);
 
