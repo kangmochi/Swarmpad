@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 
 import { App } from "./App";
+import "./lib/buffer-global";
 import "@fontsource-variable/outfit";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/jetbrains-mono";

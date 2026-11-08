@@ -1,5 +1,5 @@
 import { FACTORY_ID } from "../../src/lib/config.js";
-import { viewCall } from "./rpc.js";
+import { RpcReadError, viewCall } from "./rpc.js";
 
 export interface ProjectRecord {
   slug: string;
@@ -25,8 +25,24 @@ export interface TokenState {
   threshold_bps: number;
   deadline_ns: number;
   claim_fee: string;
-  pool_account: string;
+  /** Null on the oldest token build, which never exported `pool_account`. */
+  pool_account: string | null;
   accrued_fees: [string, string, string];
+}
+
+/**
+ * A view the oldest token build does not implement. Absent is a normal state for
+ * those projects, not a failure: the caller returns the field as null.
+ */
+async function optionalView<T>(account: string, method: string): Promise<T | null> {
+  try {
+    return await viewCall<T>(account, method);
+  } catch (error) {
+    if (error instanceof RpcReadError && error.missingMethod) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function projectCount(): Promise<number> {
@@ -95,7 +111,7 @@ export async function tokenState(account: string): Promise<TokenState> {
     view<number>("threshold_bps"),
     view<number>("deadline_ns"),
     view<string>("claim_fee"),
-    view<string>("pool_account"),
+    optionalView<string>(account, "pool_account"),
     view<[string, string, string]>("accrued_fees"),
   ]);
 

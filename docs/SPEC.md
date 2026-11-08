@@ -75,9 +75,11 @@ not an idea; anything still open is listed at the end.
   (`storage_byte_cost * code_len + 0.3 NEAR`) and forwarded to the new account,
   because the account pays for its own code storage.
 
-## 6. Liquidity (phase 2)
+## 6. Liquidity — a wNEAR pool on Rhea, not deployed
 
 - Market is a classic Rhea/Ref pool: permissionless, token paired with wNEAR.
+  The venue is Rhea, the DEX that grew out of Ref Finance. Nothing is deployed
+  and the contracts make no DEX call in this release.
 - Who provides liquidity is an economic decision, not a contract detail. The
   planned path is: creator or operator creates the pool once the threshold is
   reached, and the LP tokens are burned.

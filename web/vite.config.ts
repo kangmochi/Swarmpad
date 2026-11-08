@@ -32,9 +32,52 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5183,
   },
+  define: {
+    /**
+     * The buffer polyfill and a few wallet dependencies reference `global`,
+     * which a browser does not define. Without this the near-api chunk throws
+     * "global is not defined" before any wallet can load.
+     */
+    global: "globalThis",
+  },
+  resolve: {
+    alias: {
+      /**
+       * `safe-buffer` calls `require("buffer")`, which a browser build leaves
+       * external: at runtime the require answers undefined and the first
+       * `Buffer.from` in the wallet code throws. Pointing it at the npm
+       * polyfill keeps that path working in the bundle.
+       */
+      buffer: "buffer/",
+    },
+  },
   build: {
     target: "es2022",
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        /**
+         * The wallet modules are loaded on demand, and each of them needs the
+         * same near-api primitives. Left to Rollup, those primitives land in the
+         * entry chunk, so every wallet chunk imports the entry chunk that
+         * imported it: a cycle that leaves the shared exports undefined and
+         * makes Meteor fail with "Cannot read properties of undefined".
+         * Pinning them to one chunk keeps the wallets leaf modules.
+         */
+        manualChunks(id: string) {
+          if (
+            id.includes("node_modules/@near-js/") ||
+            id.includes("node_modules/near-api-js/") ||
+            id.includes("node_modules/@noble/") ||
+            id.includes("node_modules/borsh/") ||
+            id.includes("node_modules/elliptic/")
+          ) {
+            return "near-api";
+          }
+          return undefined;
+        },
+      },
+    },
   },
   test: {
     environment: "node",

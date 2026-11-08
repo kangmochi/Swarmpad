@@ -59,8 +59,9 @@ npm run build && npm run e2e    # smoke tests over the built app
 ## What is deliberately not done
 
 - **Mainnet.** Testnet only; no audit, so no real money.
-- **Market.** No pool, no DEX call. The fee accounting for it exists; the market
-  itself is phase 2 and described as such in the README and `/docs`.
+- **Market.** No pool, no DEX call. The fee accounting for it exists and accrues
+  from the first claim; the planned venue is a wNEAR pool on Rhea, and the README
+  and `/docs` say plainly that nothing is deployed.
 - **Old token upgrades.** v1 projects stay broken; keys were burned by design.
 - **A backend.** Reads go straight to JSON-RPC from the browser; the only server
   code is the keyless `/v1` API.

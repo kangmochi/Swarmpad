@@ -41,7 +41,7 @@ export interface TokenState {
   deadlineNs: number;
   claimFee: bigint;
   accrued: { pool: bigint; creator: bigint; protocol: bigint };
-  poolAccount: string;
+  poolAccount: string | null;
   /** Null on projects deployed before the token exported `ft_metadata`. */
   meta: TokenMeta | null;
 }

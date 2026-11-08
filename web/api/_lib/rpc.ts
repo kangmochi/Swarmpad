@@ -20,6 +20,18 @@ function order(): string[] {
   );
 }
 
+/** An answer that is not a usable result, classified for the routes. */
+export class RpcReadError extends Error {
+  constructor(
+    message: string,
+    readonly accountMissing = false,
+    readonly missingMethod = false,
+  ) {
+    super(message);
+    this.name = "RpcReadError";
+  }
+}
+
 async function post(endpoint: string, method: string, params: unknown): Promise<unknown> {
   const started = Date.now();
   const response = await fetch(endpoint, {
@@ -31,7 +43,11 @@ async function post(endpoint: string, method: string, params: unknown): Promise<
   const text = await response.text();
   const body = JSON.parse(text) as {
     result?: unknown;
-    error?: { message?: string; data?: unknown };
+    error?: {
+      message?: string;
+      data?: unknown;
+      cause?: { name?: string; info?: { error_message?: string } };
+    };
   };
   if (!body.error) {
     latency.set(endpoint, Date.now() - started);
@@ -39,7 +55,15 @@ async function post(endpoint: string, method: string, params: unknown): Promise<
   if (body.error || body.result === undefined) {
     // Some nodes answer 429 with a bare { statusCode, message } body, which has
     // no JSON-RPC error field. Treat that as a node failure, not an empty result.
-    throw new Error(String(body.error?.data ?? body.error?.message ?? "rpc error"));
+    const error = body.error;
+    const message = String(
+      error?.cause?.info?.error_message ??
+        error?.cause?.name ??
+        (typeof error?.data === "string" ? error.data : undefined) ??
+        error?.message ??
+        "rpc error",
+    );
+    throw new RpcReadError(message, /UNKNOWN_ACCOUNT|does not exist/i.test(message));
   }
   return body.result;
 }
@@ -58,16 +82,28 @@ export async function rpc(method: string, params: unknown): Promise<unknown> {
   }
 
   let lastError: Error | null = null;
+  let flagged: RpcReadError | null = null;
   for (let attempt = 0; attempt < 2; attempt++) {
     for (const endpoint of order()) {
       try {
         return await post(endpoint, method, params);
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error("rpc failed");
+        const failure = error instanceof Error ? error : new Error("rpc failed");
+        lastError = failure;
+        // One node can answer a deprecated-endpoint notice where another gives
+        // the real reason (an unknown account, a missing method). Keep the
+        // classified answer: the routes decide on it.
+        if (
+          failure instanceof RpcReadError &&
+          (failure.accountMissing || failure.missingMethod) &&
+          flagged === null
+        ) {
+          flagged = failure;
+        }
       }
     }
   }
-  throw lastError ?? new Error("no node answered");
+  throw flagged ?? lastError ?? new Error("no node answered");
 }
 
 export async function viewCall<T>(
@@ -75,15 +111,29 @@ export async function viewCall<T>(
   method: string,
   args: Record<string, unknown> = {},
 ): Promise<T> {
-  const result = (await rpc("query", {
+  const answer = (await rpc("query", {
     request_type: "call_function",
     finality: "final",
     account_id: account,
     method_name: method,
     args_base64: btoa(JSON.stringify(args)),
-  })) as { result: number[] };
+  })) as { result?: number[]; error?: string };
 
-  const text = new TextDecoder().decode(Uint8Array.from(result.result)).trim();
+  if (typeof answer?.error === "string" && answer.error !== "") {
+    // A contract that never exported the method answers inside `result`, not as
+    // a JSON-RPC error: the oldest token builds do this for `ft_metadata` and
+    // `pool_account`. Callers decide whether that is fatal.
+    throw new RpcReadError(
+      answer.error,
+      false,
+      /MethodResolveError|MethodNotFound/i.test(answer.error),
+    );
+  }
+  if (!Array.isArray(answer?.result)) {
+    throw new RpcReadError("node returned no result bytes");
+  }
+
+  const text = new TextDecoder().decode(Uint8Array.from(answer.result)).trim();
   if (text === "") {
     return null as T;
   }

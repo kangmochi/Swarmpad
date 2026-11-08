@@ -71,18 +71,24 @@ levels, and the curve is x1.10 for every launch. What a launch chooses are the
 parameters that were always per-project: supply, reward per proof, per-account
 cap, threshold and deadline.
 
-## Market (phase 2)
+## Market — planned: a wNEAR pool on Rhea
 
-There is no market yet, and the contracts do not call a DEX. The plan recorded in
-`docs/SPEC.md` §6 is a permissionless pool on a NEAR DEX (Rhea, the venue that
-grew out of Ref Finance): the project token paired with wNEAR, created by the
-creator or the operator once the threshold is reached, with the LP tokens burned.
+There is no market yet, and the contracts do not call a DEX. What is planned, and
+recorded in `docs/SPEC.md` §6, is a permissionless pool on Rhea (the NEAR DEX that
+grew out of Ref Finance): the project token paired with wNEAR.
 
-What exists today is the accounting for it: 50% of every claim fee is accrued in
-the token for the pool account, so a pool can be seeded later without the
-protocol moving funds after the fact. Until a pool exists that account is the
-protocol account, which keeps the share from being stranded. Treat any mention of
-trading, liquidity or price as roadmap, not as a deployed feature.
+The path, in order:
+
+1. A project reaches its threshold (50% of supply by default) and finalises `Valid`.
+2. The creator or the operator creates the pool on Rhea: project token against wNEAR.
+3. The LP tokens are burned, so the pool share cannot be pulled back out.
+4. The 50% pool share of every claim has been accruing inside the token since the
+   first claim, so the pool is seeded without the protocol moving funds afterwards.
+
+No live pool, no DEX call, and no on-chain integration with Rhea or Ref exists
+today. Until a pool does, the pool account is the protocol account, which keeps
+the share from being stranded. Treat any mention of trading, liquidity or price
+as roadmap, not as a deployed feature.
 
 ## Launch profiles
 

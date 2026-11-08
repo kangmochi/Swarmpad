@@ -140,18 +140,19 @@ export function Docs() {
           share cannot be stranded in an account nobody controls.
         </p>
 
-        <h3>Market (phase 2)</h3>
+        <h3>Market — planned: a wNEAR pool on Rhea</h3>
         <p>
-          The market for a project is a permissionless pool on a NEAR DEX (Rhea, the venue that
-          grew out of Ref Finance): the project token paired with wNEAR. This release does not
-          call the DEX. What exists today is the accounting: the pool share of every claim is
-          accrued inside the token, so a pool can be seeded later without the protocol having to
-          move funds afterwards.
+          The market for a project is a permissionless pool on Rhea, the NEAR DEX that grew out
+          of Ref Finance: the project token paired with wNEAR. This release does not call the
+          DEX. What exists today is the accounting: the pool share of every claim is accrued
+          inside the token, so a pool can be seeded later without the protocol having to move
+          funds afterwards.
         </p>
         <p>
-          The planned path is that the creator or the operator creates the pool once the
-          threshold is reached, and that the LP tokens are burned. Until a pool exists, the pool
-          account is the protocol account, which is why the share cannot be stranded.
+          The path, in order: a project reaches its threshold and finalises Valid; the creator
+          or the operator creates the pool on Rhea against wNEAR; the LP tokens are burned, so
+          the share cannot be pulled back out. Until a pool exists, the pool account is the
+          protocol account, which is why the share cannot be stranded.
         </p>
         <p className="doc__note">
           To be explicit: there is no live pool and no on-chain integration with Rhea or Ref yet.
@@ -265,7 +266,7 @@ export function Docs() {
         </p>
         <pre className="code">
           <code>{`GET /v1/projects?from=0&limit=12
-→ { "factory": "swarmpad.testnet", "count": 6, "projects": [ … ] }
+→ { "factory": "swarmpad.testnet", "count": 7, "projects": [ … ] }
 
 GET /v1/projects/swarm3
 → {
@@ -273,7 +274,7 @@ GET /v1/projects/swarm3
     "version": "v2",
     "meta": { "name": "Swarm Three", "symbol": "SWRM", "decimals": 18 },
     "record": { "token_account": "swarm3.swarmpad.testnet", … },
-    "state": { "status": "Mining", "level": 3, "target": "26191…", "claim_fee": "50000…" },
+    "state": { "status": "Failed", "level": 3, "target": "26191…", "claim_fee": "50000…" },
     "next": { "method": "mine", "deposit": "50000…", "target": "26191…", "level": 3 }
   }
 
@@ -294,6 +295,11 @@ POST /v1/projects
 → 201 { "slug": "…", "launch_args": { … }, "deposit": "2687400000000000000000000",
         "call": { "receiverId": "swarmpad.testnet", "methodName": "launch", … } }`}</code>
         </pre>
+        <p className="doc__note">
+          <code>next</code> is the shape of the mine call, not an invitation: the contract only
+          accepts it while <code>status</code> is <code>Mining</code>, and every project on this
+          testnet is finalised.
+        </p>
         <p>
           The proof check runs against the live target, so a 202 means the contract would accept
           it: the caller attaches the fee from the response and signs with its own account. A 422

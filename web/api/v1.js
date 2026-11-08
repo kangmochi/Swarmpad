@@ -301,6 +301,17 @@ const latency = /* @__PURE__ */ new Map();
 function order() {
 	return [...ENDPOINTS].sort((a, b) => (latency.get(a) ?? Number.MAX_SAFE_INTEGER) - (latency.get(b) ?? Number.MAX_SAFE_INTEGER));
 }
+/** An answer that is not a usable result, classified for the routes. */
+var RpcReadError = class extends Error {
+	accountMissing;
+	missingMethod;
+	constructor(message, accountMissing = false, missingMethod = false) {
+		super(message);
+		this.accountMissing = accountMissing;
+		this.missingMethod = missingMethod;
+		this.name = "RpcReadError";
+	}
+};
 async function post(endpoint, method, params) {
 	const started = Date.now();
 	const text = await (await fetch(endpoint, {
@@ -316,7 +327,11 @@ async function post(endpoint, method, params) {
 	})).text();
 	const body = JSON.parse(text);
 	if (!body.error) latency.set(endpoint, Date.now() - started);
-	if (body.error || body.result === void 0) throw new Error(String(body.error?.data ?? body.error?.message ?? "rpc error"));
+	if (body.error || body.result === void 0) {
+		const error = body.error;
+		const message = String(error?.cause?.info?.error_message ?? error?.cause?.name ?? (typeof error?.data === "string" ? error.data : void 0) ?? error?.message ?? "rpc error");
+		throw new RpcReadError(message, /UNKNOWN_ACCOUNT|does not exist/i.test(message));
+	}
 	return body.result;
 }
 async function rpc(method, params) {
@@ -330,28 +345,45 @@ async function rpc(method, params) {
 		} catch {}
 	}
 	let lastError = null;
+	let flagged = null;
 	for (let attempt = 0; attempt < 2; attempt++) for (const endpoint of order()) try {
 		return await post(endpoint, method, params);
 	} catch (error) {
-		lastError = error instanceof Error ? error : /* @__PURE__ */ new Error("rpc failed");
+		const failure = error instanceof Error ? error : /* @__PURE__ */ new Error("rpc failed");
+		lastError = failure;
+		if (failure instanceof RpcReadError && (failure.accountMissing || failure.missingMethod) && flagged === null) flagged = failure;
 	}
-	throw lastError ?? /* @__PURE__ */ new Error("no node answered");
+	throw flagged ?? lastError ?? /* @__PURE__ */ new Error("no node answered");
 }
 async function viewCall(account, method, args = {}) {
-	const result = await rpc("query", {
+	const answer = await rpc("query", {
 		request_type: "call_function",
 		finality: "final",
 		account_id: account,
 		method_name: method,
 		args_base64: btoa(JSON.stringify(args))
 	});
-	const text = new TextDecoder().decode(Uint8Array.from(result.result)).trim();
+	if (typeof answer?.error === "string" && answer.error !== "") throw new RpcReadError(answer.error, false, /MethodResolveError|MethodNotFound/i.test(answer.error));
+	if (!Array.isArray(answer?.result)) throw new RpcReadError("node returned no result bytes");
+	const text = new TextDecoder().decode(Uint8Array.from(answer.result)).trim();
 	if (text === "") return null;
 	if (/^-?\d{16,}$/.test(text)) return text;
 	const quoted = text.replace(/([:\[,]\s*)(-?\d{16,})(\s*[,\]}])/g, "$1\"$2\"$3");
 	return JSON.parse(quoted);
 }
 // api/_lib/state.ts
+/**
+* A view the oldest token build does not implement. Absent is a normal state for
+* those projects, not a failure: the caller returns the field as null.
+*/
+async function optionalView(account, method) {
+	try {
+		return await viewCall(account, method);
+	} catch (error) {
+		if (error instanceof RpcReadError && error.missingMethod) return null;
+		throw error;
+	}
+}
 async function projectCount() {
 	return viewCall(FACTORY_ID, "project_count");
 }
@@ -400,7 +432,7 @@ async function tokenState(account) {
 		view("threshold_bps"),
 		view("deadline_ns"),
 		view("claim_fee"),
-		view("pool_account"),
+		optionalView(account, "pool_account"),
 		view("accrued_fees")
 	]);
 	return {
@@ -583,7 +615,24 @@ async function readProject(res, slug) {
 			fail(res, `no project named ${slug}`, 404);
 			return;
 		}
-		const [state, meta] = await Promise.all([tokenState(record.token_account), tokenMetadata(record.token_account)]);
+		let read;
+		try {
+			read = await Promise.all([tokenState(record.token_account), tokenMetadata(record.token_account)]);
+		} catch (error) {
+			if (error instanceof RpcReadError && error.accountMissing) {
+				json(res, {
+					slug,
+					version: "none",
+					meta: null,
+					record,
+					state: null,
+					note: "the launch was recorded but its project account does not exist"
+				});
+				return;
+			}
+			throw error;
+		}
+		const [state, meta] = read;
 		json(res, {
 			slug,
 			version: meta ? "v2" : "v1",
