@@ -18,20 +18,24 @@ const BACKOFF = [600, 1500];
 const cooldownUntil = new Map<string, number>();
 /** +1 for every answer, -3 for every refusal: healthy nodes sort first. */
 const health = new Map<string, number>();
+// A page needs the factory plus one token per project. Serialising every call
+// turned that into seven seconds of "reading chain"; three in flight keeps the
+// node happy and fills the page in one round trip.
+const MAX_CONCURRENT = 3;
 let active = 0;
 const waiting: Array<() => void> = [];
 
 async function acquire(): Promise<void> {
-  if (active === 0) {
-    active = 1;
+  if (active < MAX_CONCURRENT) {
+    active += 1;
     return;
   }
   await new Promise<void>((resolve) => waiting.push(resolve));
-  active = 1;
+  active += 1;
 }
 
 function release(): void {
-  active = 0;
+  active = Math.max(0, active - 1);
   const next = waiting.shift();
   next?.();
 }
