@@ -28,7 +28,7 @@ test("landing page shows the hero and the minting bar", async ({ page }) => {
 
 test("registry renders its heading and either a notice, cards or an empty state", async ({ page }) => {
   await page.goto("/projects");
-  await expect(page.getByRole("heading", { name: "Projects, oldest first." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Projects, oldest first" })).toBeVisible();
   await expect(page.locator(".notice, .projcard, .empty").first()).toBeVisible();
 });
 
