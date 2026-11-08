@@ -296,11 +296,7 @@ function toHex(digest) {
 * the first call racing all of them. No keys and no writes happen here: the API
 * only reads chain state and prepares call arguments for a caller that signs.
 */
-const ENDPOINTS = [
-	"https://rpc.testnet.near.org",
-	"https://near-testnet.gateway.tatum.io",
-	"https://rpc.testnet.fastnear.com"
-];
+const ENDPOINTS = ["https://rpc.testnet.fastnear.com", "https://rpc.testnet.near.org"];
 const latency = /* @__PURE__ */ new Map();
 function order() {
 	return [...ENDPOINTS].sort((a, b) => (latency.get(a) ?? Number.MAX_SAFE_INTEGER) - (latency.get(b) ?? Number.MAX_SAFE_INTEGER));
@@ -370,6 +366,23 @@ async function projectRecord(slug) {
 }
 async function launchDeposit() {
 	return viewCall(FACTORY_ID, "launch_deposit");
+}
+/** The four fields the home page needs, without the other ten. */
+async function tokenSummary(account) {
+	const [status, supply, mined, level, deadline] = await Promise.all([
+		viewCall(account, "status"),
+		viewCall(account, "supply"),
+		viewCall(account, "mined"),
+		viewCall(account, "level"),
+		viewCall(account, "deadline_ns")
+	]);
+	return {
+		status,
+		supply,
+		mined,
+		level,
+		deadline_ns: deadline
+	};
 }
 /** One read per view method, all in flight at once. */
 async function tokenState(account) {
@@ -605,10 +618,57 @@ async function prove(req, res, slug) {
 		fail(res, "proof check failed", 502, error instanceof Error ? error.message : null);
 	}
 }
+function minedBpsOf(state) {
+	const supply = BigInt(state.supply || "0");
+	if (supply === 0n) return 0;
+	return Number(BigInt(state.mined || "0") * 10000n / supply);
+}
+/**
+* The home page in one request: the registry count and the project the progress
+* bar speaks about. Without it the browser reads nine contracts in a row before
+* it can paint a number.
+*/
+async function readOverview(res) {
+	try {
+		const count = await projectCount();
+		const newest = count > 0 ? (await projectsPage(count - 1, 1))[0] : void 0;
+		let lead = null;
+		if (newest) try {
+			const state = await tokenSummary(newest.token_account);
+			const now = Date.now() * 1e6;
+			lead = {
+				slug: newest.slug,
+				status: state.status,
+				supply: state.supply,
+				mined: state.mined,
+				mined_bps: minedBpsOf(state),
+				level: state.level,
+				open: state.status === "Mining" && state.deadline_ns > now
+			};
+		} catch {
+			lead = null;
+		}
+		json(res, {
+			factory: FACTORY_ID,
+			count,
+			lead
+		});
+	} catch (error) {
+		fail(res, "overview read failed", 502, error instanceof Error ? error.message : null);
+	}
+}
 /** Routes a request whose path has already been split into segments. */
 async function route(req, res, parts) {
 	if (req.method === "OPTIONS") {
 		preflight(res);
+		return;
+	}
+	if (parts[0] === "overview") {
+		if (req.method !== "GET") {
+			fail(res, "method not allowed", 405);
+			return;
+		}
+		await readOverview(res);
 		return;
 	}
 	if (parts[0] !== "projects") {

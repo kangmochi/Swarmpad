@@ -63,7 +63,7 @@ export function Projects() {
         </div>
       ) : null}
 
-      <div className="pager">
+      <div className="pager" hidden={state.loading}>
         <PillButton
           variant="ghost"
           size="sm"

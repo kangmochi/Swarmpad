@@ -11,6 +11,20 @@ import { formatBps, formatInt, formatToken } from "../lib/format";
 import { useAsync, useNow } from "../lib/hooks";
 import { loadProjects } from "../lib/projects";
 
+type OverviewPayload = {
+  factory: string;
+  count: number;
+  lead: {
+    slug: string;
+    status: string;
+    supply: string;
+    mined: string;
+    mined_bps: number;
+    level: number;
+    open: boolean;
+  } | null;
+};
+
 const FEATURES = [
   {
     n: "01",
@@ -63,7 +77,6 @@ export function Home() {
 
   const views = registry.data?.views ?? [];
   const count = registry.data?.count ?? 0;
-  const loading = registry.loading;
   // The bar is about work in progress. A closed project keeps its share, but it
   // is no longer minting, so only fall back to one when nothing is open.
   const open = views.filter(
@@ -72,7 +85,35 @@ export function Home() {
   const lead = open.length
     ? [...open].sort((a, b) => b.minedBps - a.minedBps)[0]
     : (views.at(-1) ?? null);
-  const leadLabel = open.length > 0 ? "minting progress" : "final result";
+
+  // The hero reads /v1/overview first: one server-side request, so a number is
+  // on screen before the browser has read nine contracts.
+  const overview = useAsync(async () => {
+    const response = await fetch("/v1/overview", { headers: { accept: "application/json" } });
+    if (!response.ok) throw new Error(`overview answered ${response.status}`);
+    return (await response.json()) as OverviewPayload;
+  }, []);
+
+  const heroLead = overview.data?.lead
+    ? {
+        slug: overview.data.lead.slug,
+        minedBps: overview.data.lead.mined_bps,
+        level: overview.data.lead.level,
+        supply: overview.data.lead.supply,
+        open: overview.data.lead.open,
+      }
+    : lead
+      ? {
+          slug: lead.record.slug,
+          minedBps: lead.minedBps,
+          level: lead.level,
+          supply: lead.record.supply,
+          open: open.length > 0,
+        }
+      : null;
+  const heroCount = overview.data?.count ?? count;
+  const heroLoading = !overview.data && registry.loading;
+  const heroLabel = heroLead?.open ? "minting progress" : "final result";
 
   return (
     <>
@@ -98,36 +139,36 @@ export function Home() {
               Browse projects
             </PillLink>
           </div>
-          <div className={loading ? "mint mint--loading" : "mint"}>
+          <div className={heroLoading ? "mint mint--loading" : "mint"}>
             <div className="mint__head">
               <span className="mono-label">
-                {leadLabel} · {lead ? lead.record.slug : "registry"}
+                {heroLabel} · {heroLead ? heroLead.slug : "registry"}
               </span>
-              <span className="mint__pct">{loading ? "—" : formatBps(lead ? lead.minedBps : 0)}</span>
+              <span className="mint__pct">{heroLoading ? "—" : formatBps(heroLead ? heroLead.minedBps : 0)}</span>
             </div>
             <div
               className="mint__track"
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-valuenow={Math.round((lead ? lead.minedBps : 0) / 100)}
+              aria-valuenow={Math.round((heroLead ? heroLead.minedBps : 0) / 100)}
               aria-label="Minted share of the leading project"
             >
               <span
                 className="mint__fill"
-                style={{ width: `${(lead ? lead.minedBps : 0) / 100}%` }}
+                style={{ width: `${(heroLead ? heroLead.minedBps : 0) / 100}%` }}
               />
               <span className="mint__ticks" aria-hidden="true" />
             </div>
             <div className="mint__foot">
               <span className="mono-label">
-                {loading ? "reading chain…" : `level ${lead ? lead.level : 1} / 40`}
+                {heroLoading ? "reading chain…" : `level ${heroLead ? heroLead.level : 1} / 40`}
               </span>
               <span className="mono-label">
-                {loading
+                {heroLoading
                   ? ""
-                  : lead
-                    ? `${formatToken((BigInt(lead.record.supply) * BigInt(lead.minedBps)) / 10_000n)} / ${formatToken(lead.record.supply)} minted`
+                  : heroLead
+                    ? `${formatToken((BigInt(heroLead.supply) * BigInt(heroLead.minedBps)) / 10_000n)} / ${formatToken(heroLead.supply)} minted`
                     : "0 minted"}
               </span>
             </div>
@@ -158,12 +199,12 @@ export function Home() {
           <Mascot size={420} className="hero__mascot" />
           <div className="hero__tags">
             <div className="hero__tag">
-              <span className="mono-label">level {loading ? "—" : lead ? lead.level : 1} / 40</span>
-              <strong>{loading ? "reading…" : `${lead ? formatBps(lead.minedBps) : "0%"} mined`}</strong>
+              <span className="mono-label">level {heroLoading ? "—" : heroLead ? heroLead.level : 1} / 40</span>
+              <strong>{heroLoading ? "reading…" : `${heroLead ? formatBps(heroLead.minedBps) : "0%"} mined`}</strong>
             </div>
             <div className="hero__tag">
               <span className="mono-label">projects on chain</span>
-              <strong>{loading ? "—" : formatInt(count)}</strong>
+              <strong>{heroLoading ? "—" : formatInt(heroCount)}</strong>
             </div>
           </div>
         </div>
