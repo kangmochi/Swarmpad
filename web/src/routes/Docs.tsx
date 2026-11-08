@@ -266,7 +266,7 @@ export function Docs() {
         </p>
         <pre className="code">
           <code>{`GET /v1/projects?from=0&limit=12
-→ { "factory": "swarmpad.testnet", "count": 6, "projects": [ … ] }
+→ { "factory": "swarmpad.testnet", "count": 7, "projects": [ … ] }
 
 GET /v1/projects/swarm3
 → {
@@ -274,7 +274,7 @@ GET /v1/projects/swarm3
     "version": "v2",
     "meta": { "name": "Swarm Three", "symbol": "SWRM", "decimals": 18 },
     "record": { "token_account": "swarm3.swarmpad.testnet", … },
-    "state": { "status": "Mining", "level": 3, "target": "26191…", "claim_fee": "50000…" },
+    "state": { "status": "Failed", "level": 3, "target": "26191…", "claim_fee": "50000…" },
     "next": { "method": "mine", "deposit": "50000…", "target": "26191…", "level": 3 }
   }
 
@@ -295,6 +295,11 @@ POST /v1/projects
 → 201 { "slug": "…", "launch_args": { … }, "deposit": "2687400000000000000000000",
         "call": { "receiverId": "swarmpad.testnet", "methodName": "launch", … } }`}</code>
         </pre>
+        <p className="doc__note">
+          <code>next</code> is the shape of the mine call, not an invitation: the contract only
+          accepts it while <code>status</code> is <code>Mining</code>, and every project on this
+          testnet is finalised.
+        </p>
         <p>
           The proof check runs against the live target, so a 202 means the contract would accept
           it: the caller attaches the fee from the response and signs with its own account. A 422
