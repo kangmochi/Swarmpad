@@ -8,9 +8,9 @@ import { RPC_URL } from "./config";
  */
 // fastnear answers in ~0.3 s from most networks; the official endpoint can take
 // several seconds and rate-limits a shared IP, so it is the fallback, not the first try.
-const ENDPOINTS = ["https://rpc.testnet.fastnear.com", RPC_URL, "https://near-testnet.gateway.tatum.io"];
+const ENDPOINTS = ["https://rpc.testnet.fastnear.com", RPC_URL];
 
-const TIMEOUT_MS = 3_500;
+const TIMEOUT_MS = 2_500;
 const COOLDOWN_MS = 60_000;
 const ATTEMPTS = 2;
 const BACKOFF = [600, 1500];
