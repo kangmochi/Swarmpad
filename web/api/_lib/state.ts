@@ -45,6 +45,24 @@ export async function launchDeposit(): Promise<string> {
   return viewCall<string>(FACTORY_ID, "launch_deposit");
 }
 
+/** The four fields the home page needs, without the other ten. */
+export async function tokenSummary(account: string): Promise<{
+  status: string;
+  supply: string;
+  mined: string;
+  level: number;
+  deadline_ns: number;
+}> {
+  const [status, supply, mined, level, deadline] = await Promise.all([
+    viewCall<string>(account, "status"),
+    viewCall<string>(account, "supply"),
+    viewCall<string>(account, "mined"),
+    viewCall<number>(account, "level"),
+    viewCall<number>(account, "deadline_ns"),
+  ]);
+  return { status, supply, mined, level, deadline_ns: deadline };
+}
+
 /** One read per view method, all in flight at once. */
 export async function tokenState(account: string): Promise<TokenState> {
   const view = <T,>(method: string) => viewCall<T>(account, method);

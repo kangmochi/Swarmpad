@@ -12,7 +12,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { FACTORY_ID } from "../../src/lib/config.js";
 import { buildLaunch, checkProof } from "./prepare.js";
 import { fail, json, preflight, readJson } from "./respond.js";
-import { projectCount, projectsPage, projectRecord, tokenMetadata, tokenState } from "./state.js";
+import { projectCount, projectsPage, projectRecord, tokenMetadata, tokenState, tokenSummary } from "./state.js";
 
 async function listOrPrepare(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method === "GET") {
@@ -85,6 +85,55 @@ async function prove(req: IncomingMessage, res: ServerResponse, slug: string): P
   }
 }
 
+
+function minedBpsOf(state: { mined: string; supply: string }): number {
+  const supply = BigInt(state.supply || "0");
+  if (supply === 0n) return 0;
+  return Number((BigInt(state.mined || "0") * 10_000n) / supply);
+}
+
+/**
+ * The home page in one request: the registry count and the project the progress
+ * bar speaks about. Without it the browser reads nine contracts in a row before
+ * it can paint a number.
+ */
+async function readOverview(res: ServerResponse): Promise<void> {
+  try {
+    const count = await projectCount();
+    // Only the newest project matters for the bar, and only five fields of it.
+    const newest = count > 0 ? (await projectsPage(count - 1, 1))[0] : undefined;
+    let lead: {
+      slug: string;
+      status: string;
+      supply: string;
+      mined: string;
+      mined_bps: number;
+      level: number;
+      open: boolean;
+    } | null = null;
+    if (newest) {
+      try {
+        const state = await tokenSummary(newest.token_account);
+        const now = Date.now() * 1e6;
+        lead = {
+          slug: newest.slug,
+          status: state.status,
+          supply: state.supply,
+          mined: state.mined,
+          mined_bps: minedBpsOf(state),
+          level: state.level,
+          open: state.status === "Mining" && state.deadline_ns > now,
+        };
+      } catch {
+        lead = null;
+      }
+    }
+    json(res, { factory: FACTORY_ID, count, lead });
+  } catch (error) {
+    fail(res, "overview read failed", 502, error instanceof Error ? error.message : null);
+  }
+}
+
 /** Routes a request whose path has already been split into segments. */
 export async function route(
   req: IncomingMessage,
@@ -93,6 +142,15 @@ export async function route(
 ): Promise<void> {
   if (req.method === "OPTIONS") {
     preflight(res);
+    return;
+  }
+
+  if (parts[0] === "overview") {
+    if (req.method !== "GET") {
+      fail(res, "method not allowed", 405);
+      return;
+    }
+    await readOverview(res);
     return;
   }
 

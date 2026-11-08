@@ -25,7 +25,7 @@ interface IndexerResponse {
 export async function fetchMineLog(account: string, limit = 12): Promise<MineLog[]> {
   const url = `${INDEXER}/accounts/${account}/txns?limit=50`;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8_000);
+  const timer = setTimeout(() => controller.abort(), 3_000);
 
   let response: Response;
   try {

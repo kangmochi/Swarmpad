@@ -6,10 +6,10 @@
  * only reads chain state and prepares call arguments for a caller that signs.
  */
 
+// fastnear answers first in practice; the official endpoint is the fallback.
 const ENDPOINTS = [
-  "https://rpc.testnet.near.org",
-  "https://near-testnet.gateway.tatum.io",
   "https://rpc.testnet.fastnear.com",
+  "https://rpc.testnet.near.org",
 ];
 
 const latency = new Map<string, number>();
