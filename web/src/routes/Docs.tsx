@@ -43,7 +43,7 @@ export function Docs() {
     <section className="page docs">
       <div className="page__head">
         <p className="mono-label">Docs</p>
-        <h1>Everything the contracts expose.</h1>
+        <h1>Everything the contracts expose</h1>
         <p className="page__lede">
           Swarmpad is two contracts on NEAR testnet: a factory that deploys projects, and one
           token per project. This page is the reference, written from the source that shipped.

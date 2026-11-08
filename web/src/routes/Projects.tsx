@@ -27,13 +27,15 @@ export function Projects() {
     <section className="page">
       <div className="page__head">
         <p className="mono-label">Registry</p>
-        <h1>Projects, oldest first.</h1>
+        <h1>Projects, oldest first</h1>
         <p className="page__lede">
           The factory appends one entry per successful launch and never rewrites history. A
           project whose token cannot be read is shown as unreadable rather than hidden.
         </p>
         <p className="page__meta mono-label">
-          {formatInt(count)} entries · page {page + 1} of {pages}
+          {state.loading
+            ? "reading registry…"
+            : `${formatInt(count)} entries · page ${page + 1} of ${pages}`}
         </p>
       </div>
 
