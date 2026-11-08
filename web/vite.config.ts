@@ -32,6 +32,14 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5183,
   },
+  define: {
+    /**
+     * The buffer polyfill and a few wallet dependencies reference `global`,
+     * which a browser does not define. Without this the near-api chunk throws
+     * "global is not defined" before any wallet can load.
+     */
+    global: "globalThis",
+  },
   resolve: {
     alias: {
       /**
