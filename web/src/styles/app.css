@@ -537,6 +537,28 @@ main {
   transition: width var(--dur-slow) var(--ease);
 }
 
+.mint--loading .mint__pct { color: var(--muted); }
+
+.mint--loading .mint__track::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(241, 235, 214, 0.18), transparent);
+  animation: mint-scan 1.5s var(--ease) infinite;
+}
+
+@keyframes mint-scan {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(240%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mint--loading .mint__track::after { animation: none; width: 100%; opacity: 0.3; }
+}
+
 .mint__ticks {
   position: absolute;
   inset: 0;

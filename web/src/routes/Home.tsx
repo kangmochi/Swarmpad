@@ -63,6 +63,7 @@ export function Home() {
 
   const views = registry.data?.views ?? [];
   const count = registry.data?.count ?? 0;
+  const loading = registry.loading;
   // The bar is about work in progress. A closed project keeps its share, but it
   // is no longer minting, so only fall back to one when nothing is open.
   const open = views.filter(
@@ -97,14 +98,12 @@ export function Home() {
               Browse projects
             </PillLink>
           </div>
-          <div className="mint">
+          <div className={loading ? "mint mint--loading" : "mint"}>
             <div className="mint__head">
               <span className="mono-label">
                 {leadLabel} · {lead ? lead.record.slug : "registry"}
               </span>
-              <span className="mint__pct">
-                {formatBps(lead ? lead.minedBps : 0)}
-              </span>
+              <span className="mint__pct">{loading ? "—" : formatBps(lead ? lead.minedBps : 0)}</span>
             </div>
             <div
               className="mint__track"
@@ -122,12 +121,14 @@ export function Home() {
             </div>
             <div className="mint__foot">
               <span className="mono-label">
-                level {lead ? lead.level : 1} / 40
+                {loading ? "reading chain…" : `level ${lead ? lead.level : 1} / 40`}
               </span>
               <span className="mono-label">
-                {lead
-                  ? `${formatToken((BigInt(lead.record.supply) * BigInt(lead.minedBps)) / 10_000n)} / ${formatToken(lead.record.supply)} minted`
-                  : "0 minted"}
+                {loading
+                  ? ""
+                  : lead
+                    ? `${formatToken((BigInt(lead.record.supply) * BigInt(lead.minedBps)) / 10_000n)} / ${formatToken(lead.record.supply)} minted`
+                    : "0 minted"}
               </span>
             </div>
           </div>
@@ -157,12 +158,12 @@ export function Home() {
           <Mascot size={420} className="hero__mascot" />
           <div className="hero__tags">
             <div className="hero__tag">
-              <span className="mono-label">level {lead ? lead.level : 1} / 40</span>
-              <strong>{lead ? formatBps(lead.minedBps) : "0%"} mined</strong>
+              <span className="mono-label">level {loading ? "—" : lead ? lead.level : 1} / 40</span>
+              <strong>{loading ? "reading…" : `${lead ? formatBps(lead.minedBps) : "0%"} mined`}</strong>
             </div>
             <div className="hero__tag">
               <span className="mono-label">projects on chain</span>
-              <strong>{formatInt(count)}</strong>
+              <strong>{loading ? "—" : formatInt(count)}</strong>
             </div>
           </div>
         </div>
