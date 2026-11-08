@@ -53,7 +53,8 @@ export class RpcError extends Error {
 }
 
 interface QueryResponse {
-  result?: { result: number[] };
+  /** A contract that does not export the method answers with `error` here. */
+  result?: { result?: number[]; error?: string };
   error?: {
     message?: string;
     code?: number;
@@ -180,6 +181,15 @@ async function post(
     const reason =
       body.error?.cause?.info?.error_message ?? data ?? body.error?.message ?? "no result";
     throw new RpcError(reason, method, account, false);
+  }
+
+  if (typeof body.result.error === "string" && body.result.error !== "") {
+    // The oldest token builds never exported `ft_metadata` or `pool_account`, and
+    // a missing method comes back inside `result`, not as a JSON-RPC error.
+    throw new RpcError(body.result.error, method, account, false);
+  }
+  if (!Array.isArray(body.result.result)) {
+    throw new RpcError("Node returned no result bytes", method, account, true);
   }
 
   noteSuccess(endpoint);
