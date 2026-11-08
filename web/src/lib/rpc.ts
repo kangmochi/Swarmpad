@@ -6,7 +6,9 @@ import { RPC_URL } from "./config";
  * time, a per-node cooldown when a node refuses, and a hard timeout so a dead
  * node never blocks the page.
  */
-const ENDPOINTS = [RPC_URL, "https://near-testnet.gateway.tatum.io", "https://rpc.testnet.fastnear.com"];
+// fastnear answers in ~0.3 s from most networks; the official endpoint can take
+// several seconds and rate-limits a shared IP, so it is the fallback, not the first try.
+const ENDPOINTS = ["https://rpc.testnet.fastnear.com", RPC_URL, "https://near-testnet.gateway.tatum.io"];
 
 const TIMEOUT_MS = 3_500;
 const COOLDOWN_MS = 60_000;
