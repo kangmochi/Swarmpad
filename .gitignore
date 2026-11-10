@@ -16,3 +16,8 @@ tools/miner/node_modules
 
 # playwright
 web/test-results/
+
+# local env files
+.env
+.env.*
+!.env.example

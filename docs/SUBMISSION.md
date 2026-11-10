@@ -5,11 +5,10 @@ What to open, and what each link proves.
 ## Entry points
 
 - App: https://swarmpad.vercel.app
-- Repository: https://github.com/kangmochi/Swarmpad — private while the build is
-  being finished, public again at submission. A reviewer who needs it earlier can
-  ask for read access.
+- Repository: https://github.com/kangmochi/Swarmpad (public).
 - Factory: https://testnet.nearblocks.io/address/swarmpad.testnet
 - Spec: `docs/SPEC.md` · testnet state: `docs/TESTNET.md` · demo script: `docs/DEMO.md`
+- Team and AI disclosure: [README.md](../README.md#team-and-ai-disclosure)
 
 ## Claims and where to check them
 
@@ -51,7 +50,7 @@ What to open, and what each link proves.
 ```bash
 cargo build -p swarmpad-common -p swarmpad-token -p swarmpad-factory \
   --target wasm32-unknown-unknown --release
-cargo test --workspace          # 18 tests, includes the sandbox launch
+cargo test --workspace          # 34 unit tests, plus 3 sandbox tests (launch and finalize)
 cd web && npm ci && npm test    # 14 unit tests
 npm run build && npm run e2e    # smoke tests over the built app
 ```
