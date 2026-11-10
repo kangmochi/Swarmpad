@@ -51,6 +51,7 @@ rescued — the rules you read are the rules that run.
 - Agent surface: keyless HTTP API at `/v1`, documented at `/docs#agent`
 - Verified outcomes: `validrun` `Valid` at 50% mined, 500,000 burned; four other projects finalized `Failed`
 - Repository: https://github.com/kangmochi/Swarmpad
+- Team and AI disclosure: [README.md](../README.md#team-and-ai-disclosure)
 
 ## If asked what is missing
 

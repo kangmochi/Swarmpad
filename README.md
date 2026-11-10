@@ -172,9 +172,26 @@ It never holds a key: every write comes back as an unsigned call for the caller
 to sign. Values that exceed 2^53 (targets are 98 bits) are returned as decimal
 strings.
 
-## Built by
+## Team and AI disclosure
 
-Swarmpad is the second project by kangmochi, after Phylaxtag.
+**Team:** one human lead, kangmochi, working with AI agents.
+
+**Who wrote what**
+
+- Smart contracts, unit tests and the sandbox tests: written by an AI coding
+  agent under the lead's direction.
+- Web app in `web/`: written by AI agents, with the lead reviewing each change.
+- Docs, README and submission materials: written by AI agents, reviewed by the
+  lead.
+- Demo video in `docs/video/`: script, storyboard and edit produced with AI
+  agents.
+
+**Review:** every change went through a pull request and a review before it
+reached `main`. No agent holds a mainnet key or a seed phrase.
+
+**Separate project:** Swarmpad is the author's second hackathon project, after
+Phylaxtag. The two are separate products in separate repositories and share no
+code.
 
 ## License
 

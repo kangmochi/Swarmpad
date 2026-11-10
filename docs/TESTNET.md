@@ -1,6 +1,6 @@
 # Swarmpad testnet deploy
 
-Live state on NEAR testnet, checked on 7 November 2026 (Asia/Jakarta). English
+Live state on NEAR testnet, checked on 10 November 2026 (Asia/Jakarta). English
 only. No keys or credentials appear here.
 
 ## Addresses
@@ -8,7 +8,7 @@ only. No keys or credentials appear here.
 | Item | Value |
 | --- | --- |
 | Factory | `swarmpad.testnet` |
-| Current project token | `swarm3.swarmpad.testnet` (token v2) |
+| Newest project token | `swarm3.swarmpad.testnet` (token v2, finalized `Failed`) |
 | Previous project token | `swarm2.swarmpad.testnet` |
 | Earlier project tokens | `swarm.swarmpad.testnet`, `genesis.swarmpad.testnet` |
 | Ops funding accounts | `swarmpad-ops.testnet`, `swarmpad-buf.testnet` |
@@ -21,13 +21,22 @@ only. No keys or credentials appear here.
 
 ## Current build
 
-The factory is the hardened version from `main` at `cae79e4`; the token code
-was replaced on 7 November 2026 with the metadata build (see the v2 section):
+The factory code on chain is newer than the hardened build from `cae79e4`; the
+current `main` is `0abc9bb`. The token code was replaced on 7 November 2026 with
+the metadata build (see the v2 section). Read from the chain on 10 November 2026:
 
-- factory wasm 199,464 bytes, token wasm 238,740 bytes (v2)
+- factory wasm 204,836 bytes, sha256
+  `b2f19cfb3958437adec070baabfd7c8f067299ac146fa74566f234e58b5220d3`
+- token wasm 238,740 bytes (v2)
 - `launch_deposit()` returns 2.6874 NEAR for the current token code
 - factory code was replaced in place with `without-init-call`, keeping the
   existing registry; the token code was replaced with `set_token_code`
+
+Earlier build, kept as history: factory wasm 199,464 bytes from `main` at
+`cae79e4` (7 November 2026).
+
+The published on-chain hash is the source of truth. A local release build is not
+byte-identical to it, so a rebuild is not a way to check the deployment.
 
 ## Project `swarm2` (hardened build)
 
