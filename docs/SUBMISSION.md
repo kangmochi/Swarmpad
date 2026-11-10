@@ -50,7 +50,7 @@ What to open, and what each link proves.
 ```bash
 cargo build -p swarmpad-common -p swarmpad-token -p swarmpad-factory \
   --target wasm32-unknown-unknown --release
-cargo test --workspace          # 34 unit tests, plus the sandbox launch test
+cargo test --workspace          # 34 unit tests, plus 3 sandbox tests (launch and finalize)
 cd web && npm ci && npm test    # 14 unit tests
 npm run build && npm run e2e    # smoke tests over the built app
 ```

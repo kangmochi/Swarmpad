@@ -186,8 +186,8 @@ strings.
 - Demo video in `docs/video/`: script, storyboard and edit produced with AI
   agents.
 
-**Review:** every change went through a pull request and a review before it
-reached `main`. No agent holds a mainnet key or a seed phrase.
+**Review:** the human lead reviews changes before they reach `main`. No agent
+holds a mainnet key or a seed phrase.
 
 **Separate project:** Swarmpad is the author's second hackathon project, after
 Phylaxtag. The two are separate products in separate repositories and share no
